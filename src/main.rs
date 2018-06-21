@@ -1,23 +1,28 @@
 extern crate time;
 
-use std::io::Write;
+use std::io;
+use std::io::{Write, BufRead};
 use std::net::TcpListener;
 
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:8080").unwrap();
 
-    let mut stream = listener.accept().unwrap().0;
-    let message = "Hello, World!";
-    let format = "%a, %d %b %Y %T GMT";
-    let time = time::now_utc();
-    let response = format!("HTTP/1.1 200 OK\r\n
-Date: {}\r\n
-Content-Type: text/html; charset=utf-8\r\n
-Content-Length: {}\r\n
-\r\n
-{}",
-                            time::strftime(format, &time).unwrap(),
-                            message.len(),
-                            message);
-    let _ = stream.write(response.as_bytes());
+    for stream in listener.incoming() {
+        match stream {
+            Ok(stream) => {
+                let mut stream = io::BufReader::new(stream);
+
+                let mut first_line = String::new();
+
+                if let Err(err) = stream.read_line(&mut first_line) {
+                    panic!("error during receive a line: {}", err);
+                }
+
+                println!("{}", first_line);
+            }
+            Err(e) => {
+                println!("Connection fail!");
+            }
+        }
+    }
 }
