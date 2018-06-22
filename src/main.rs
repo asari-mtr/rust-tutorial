@@ -12,13 +12,17 @@ fn main() {
             Ok(stream) => {
                 let mut stream = io::BufReader::new(stream);
 
-                let mut first_line = String::new();
-
-                if let Err(err) = stream.read_line(&mut first_line) {
-                    panic!("error during receive a line: {}", err);
+                loop {
+                    let mut line = String::new();
+                    match stream.read_line(&mut line) {
+                        Ok(0) => {
+                            println!("end");
+                            break;
+                        },
+                        Err(err) => panic!("error during receive a line: {}", err),
+                        _ => print!("{}", line)
+                    }
                 }
-
-                println!("{}", first_line);
             }
             Err(e) => {
                 println!("Connection fail!");
