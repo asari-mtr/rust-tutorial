@@ -5,6 +5,7 @@ use std::net::{TcpListener, TcpStream};
 
 fn handle_client(stream: TcpStream) {
     let mut stream = io::BufReader::new(stream);
+    let message = "<html><head><title>Hello</title></head><body>Hello World!</body></html>";
 
     loop {
         let mut line = String::new();
@@ -13,8 +14,9 @@ fn handle_client(stream: TcpStream) {
                 let mut stream = stream.get_mut();
                 writeln!(stream, "HTTP/1.1 200 OK").unwrap();
                 writeln!(stream, "Content-Type: text/html; charset=UTF-8").unwrap();
-                writeln!(stream, "Content-Length: {}", 0).unwrap();
+                writeln!(stream, "Content-Length: {}", message.len()).unwrap();
                 writeln!(stream).unwrap();
+                writeln!(stream, "{}", message).unwrap();
                 break;
             },
             Err(err) => panic!("error during receive a line: {}", err),
