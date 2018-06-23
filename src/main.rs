@@ -8,17 +8,18 @@ fn handle_client(stream: TcpStream) {
 
     loop {
         let mut line = String::new();
-        println!("{}", line);
         match stream.read_line(&mut line) {
             Ok(2) => {
                 let mut stream = stream.get_mut();
                 writeln!(stream, "HTTP/1.1 200 OK").unwrap();
                 writeln!(stream, "Content-Type: text/html; charset=UTF-8").unwrap();
                 writeln!(stream, "Content-Length: {}", 0).unwrap();
+                writeln!(stream).unwrap();
                 break;
             },
             Err(err) => panic!("error during receive a line: {}", err),
-            _ => print!("{}", line.trim_right_matches("\r\n"))
+            _ => continue
+            // _ => println!("{}", line.trim_right_matches("\r\n"))
         }
     }
 }
