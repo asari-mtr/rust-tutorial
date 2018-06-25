@@ -5,11 +5,24 @@ use std::net::{TcpListener, TcpStream, SocketAddr};
 
 fn handle_client(stream: TcpStream, addr: SocketAddr) {
     let mut stream = io::BufReader::new(stream);
+
+    let mut request_line = String::new();
+    match stream.read_line(&mut request_line) {
+        Ok(r) => {
+            let mut iter = request_line.split_whitespace();
+            let method = iter.next().unwrap();
+            let uri = iter.next().unwrap();
+            let version = iter.next().unwrap();
+            println!("method: {}", method);
+            println!("ip: {}", addr.ip());
+            get_operation(stream);
+        },
+        Err(err) => panic!("error during receive a line: {}", err),
+    }
+}
+
+fn get_operation(stream: BufRead) {
     let message = "<html><head><title>Hello</title></head><body>Hello World!</body></html>";
-
-    println!("ip: {}", addr.ip());
-    println!("port: {}", addr.port());
-
     loop {
         let mut line = String::new();
         match stream.read_line(&mut line) {
