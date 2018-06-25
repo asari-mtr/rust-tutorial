@@ -23,6 +23,12 @@ $ cargo check
 CheatSeet
 ---
 ``` rust
+// This is a comment
+
+//
+// This is multi comment
+//
+
 // immutable valirable
 let x = 4;
 
@@ -35,6 +41,47 @@ const MAX_SIZE: u32 = 100_000;
 // shadowing
 let age = "14"
 let age: i32 = age.parse().unwrap();
+
+// if Expressions
+let number = 3;
+if number % 3 == 0 {
+  println!("Fizz");
+} else if number % 5 == 0 {
+  println!("Buzz");
+} else {
+  println!("{}", number);
+}
+
+// Using if in a let Statement
+let condition = true;
+let number = if condition {
+  5
+} else {
+  6
+}
+
+// Repeating Code with loop
+loop {
+  println!("again!");
+  break;
+}
+
+// Conditional Loops with while
+let mut number = 3;
+while number != 0 {
+  number = number - 1;
+}
+
+// Looping Through a Collection with for
+let a = [10, 20, 30];
+for element in a.iter() {
+  println!("the value is: {}", element);
+}
+
+for number in (1..4).rev() {
+  println!("{}", number);
+}
+
 ```
 
 Data type
@@ -48,3 +95,4 @@ bool
 char
 _tuple_
 _array_
+
