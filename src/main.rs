@@ -1,7 +1,22 @@
 use std::thread;
 use std::io;
+use std::str::SplitWhitespace;
 use std::io::{Write, BufRead};
 use std::net::{TcpListener, TcpStream, SocketAddr};
+
+struct Requst {
+    method: String,
+    uri: String,
+    version: String,
+}
+
+fn create_request(iter: &mut SplitWhitespace) -> Requst {
+    Requst {
+        method: iter.next().unwrap().to_string(),
+        uri: iter.next().unwrap().to_string(),
+        version: iter.next().unwrap().to_string(),
+    }
+}
 
 fn handle_client(stream: TcpStream, addr: SocketAddr) {
     let mut stream = io::BufReader::new(stream);
@@ -10,13 +25,12 @@ fn handle_client(stream: TcpStream, addr: SocketAddr) {
     match stream.read_line(&mut request_line) {
         Ok(r) => {
             let mut iter = request_line.split_whitespace();
-            let method = iter.next().unwrap();
-            let uri = iter.next().unwrap();
-            let version = iter.next().unwrap();
-            println!("method: {}", method);
+            let request = create_request(&mut iter);
+            println!("method: {}", request.method);
+            println!("uri: {}", request.uri);
+            println!("version: {}", request.version);
             println!("ip: {}", addr.ip());
-            println!("{}", request_line);
-            if method == "GET" && uri == "/" {
+            if request.method == "GET" && request.uri == "/" {
                 loop {
                     let mut line = String::new();
                     match stream.read_line(&mut line) {
@@ -25,8 +39,8 @@ fn handle_client(stream: TcpStream, addr: SocketAddr) {
                             write_response(stream.get_mut(), message);
                             break;
                         },
+                        _ => println!("{}", line.trim_right_matches("\r\n")),
                         Err(err) => panic!("error during receive a line: {}", err),
-                        _ => println!("{}", line.trim_right_matches("\r\n"))
                     }
                 }
             }
