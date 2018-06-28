@@ -4,18 +4,24 @@ use std::str::SplitWhitespace;
 use std::io::{Write, BufRead};
 use std::net::{TcpListener, TcpStream, SocketAddr};
 
-struct Requst {
+struct Request {
     method: String,
     uri: String,
     version: String,
 }
 
-fn create_request(iter: &mut SplitWhitespace) -> Requst {
-    Requst {
+fn create_request(iter: &mut SplitWhitespace) -> Request {
+    Request {
         method: iter.next().unwrap().to_string(),
         uri: iter.next().unwrap().to_string(),
         version: iter.next().unwrap().to_string(),
     }
+}
+
+fn debug_request(request: &Request) {
+    println!("method: {}", request.method);
+    println!("uri: {}", request.uri);
+    println!("version: {}", request.version);
 }
 
 fn handle_client(stream: TcpStream, addr: SocketAddr) {
@@ -25,9 +31,7 @@ fn handle_client(stream: TcpStream, addr: SocketAddr) {
     match stream.read_line(&mut request_line) {
         Ok(r) => {
             let request = create_request(&mut request_line.split_whitespace());
-            println!("method: {}", request.method);
-            println!("uri: {}", request.uri);
-            println!("version: {}", request.version);
+            debug_request(&request);
             println!("ip: {}", addr.ip());
             if request.method == "GET" && request.uri == "/" {
                 loop {
