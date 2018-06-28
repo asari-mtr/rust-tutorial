@@ -24,8 +24,7 @@ fn handle_client(stream: TcpStream, addr: SocketAddr) {
     let mut request_line = String::new();
     match stream.read_line(&mut request_line) {
         Ok(r) => {
-            let mut iter = request_line.split_whitespace();
-            let request = create_request(&mut iter);
+            let request = create_request(&mut request_line.split_whitespace());
             println!("method: {}", request.method);
             println!("uri: {}", request.uri);
             println!("version: {}", request.version);
