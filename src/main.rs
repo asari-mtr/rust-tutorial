@@ -1,7 +1,6 @@
 use std::thread;
-use std::io;
 use std::str::SplitWhitespace;
-use std::io::{Write, BufRead};
+use std::io::{Write, BufRead, BufReader};
 use std::net::{TcpListener, TcpStream, SocketAddr};
 
 struct Request {
@@ -24,8 +23,23 @@ fn debug_request(request: &Request) {
     println!("version: {}", request.version);
 }
 
+fn response(stream: &mut BufReader<TcpStream>) {
+    loop {
+        let mut line = String::new();
+        match stream.read_line(&mut line) {
+            Ok(2) => {
+                let message = "<html><head><title>Hello</title></head><body>Hello World!</body></html>".to_string();
+                write_response(stream.get_mut(), message);
+                break;
+            },
+            _ => println!("{}", line.trim_right_matches("\r\n")),
+            Err(err) => panic!("error during receive a line: {}", err),
+        }
+    }
+}
+
 fn handle_client(stream: TcpStream, addr: SocketAddr) {
-    let mut stream = io::BufReader::new(stream);
+    let mut stream = BufReader::new(stream);
 
     let mut request_line = String::new();
     match stream.read_line(&mut request_line) {
@@ -34,18 +48,7 @@ fn handle_client(stream: TcpStream, addr: SocketAddr) {
             debug_request(&request);
             println!("ip: {}", addr.ip());
             if request.method == "GET" && request.uri == "/" {
-                loop {
-                    let mut line = String::new();
-                    match stream.read_line(&mut line) {
-                        Ok(2) => {
-                            let message = "<html><head><title>Hello</title></head><body>Hello World!</body></html>".to_string();
-                            write_response(stream.get_mut(), message);
-                            break;
-                        },
-                        _ => println!("{}", line.trim_right_matches("\r\n")),
-                        Err(err) => panic!("error during receive a line: {}", err),
-                    }
-                }
+                response(&mut stream);
             }
         },
         Err(err) => panic!("error during receive a line: {}", err),
