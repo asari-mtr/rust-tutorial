@@ -43,7 +43,7 @@ fn handle_client(stream: TcpStream, addr: SocketAddr) {
 
     let mut request_line = String::new();
     match stream.read_line(&mut request_line) {
-        Ok(r) => {
+        Ok(_) => {
             let request = create_request(&mut request_line.split_whitespace());
             debug_request(&request);
             println!("ip: {}", addr.ip());
@@ -73,7 +73,7 @@ fn main() {
                     handle_client(stream, addr)
                 });
             }
-            Err(e) => {
+            Err(_) => {
                 println!("Connection fail!");
             }
         }
