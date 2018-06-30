@@ -47,11 +47,15 @@ fn handle_client(stream: TcpStream, addr: SocketAddr) {
             let request = create_request(&mut request_line.split_whitespace());
             debug_request(&request);
             println!("ip: {}", addr.ip());
-            if request.method == "GET" && request.uri == "/" {
-                response(&mut stream);
-            }
+            ok_handler(request, &mut stream)
         },
         Err(err) => panic!("error during receive a line: {}", err),
+    }
+}
+
+fn ok_handler(request: Request, stream: &mut BufReader<TcpStream>) {
+    if request.method == "GET" && request.uri == "/" {
+        response(stream);
     }
 }
 
