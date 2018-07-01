@@ -25,12 +25,22 @@ fn debug_request(request: &Request) {
     println!("version: {}", request.version);
 }
 
-fn response(stream: &mut BufReader<TcpStream>) {
+fn public_path(path: &String) -> &str {
+    "public/index.html"
+}
+
+fn response(request: Request, stream: &mut BufReader<TcpStream>) {
     loop {
         let mut line = String::new();
+        let public_path = public_path(&request.uri);
         match stream.read_line(&mut line) {
             Ok(2) => {
-                let mut f = File::open("public/index.html").expect("file not found");
+                let mut f = match File::open(public_path) {
+                    Ok(f) => f,
+                    Err(err) => {
+                        File::open("public/404.html").expect("File not found") 
+                    }
+                };
 
                 let mut contents = String::new();
                 f.read_to_string(&mut contents)
@@ -62,7 +72,7 @@ fn handle_client(stream: TcpStream, addr: SocketAddr) {
 
 fn ok_handler(request: Request, stream: &mut BufReader<TcpStream>) {
     if request.method == "GET" && request.uri == "/" {
-        response(stream);
+        response(request, stream);
     }
 }
 
