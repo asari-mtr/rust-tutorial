@@ -1,5 +1,7 @@
 use std::thread;
 use std::str::SplitWhitespace;
+use std::fs::File;
+use std::io::prelude::*;
 use std::io::{Write, BufRead, BufReader};
 use std::net::{TcpListener, TcpStream, SocketAddr};
 
@@ -28,8 +30,13 @@ fn response(stream: &mut BufReader<TcpStream>) {
         let mut line = String::new();
         match stream.read_line(&mut line) {
             Ok(2) => {
-                let message = "<html><head><title>Hello</title></head><body>Hello World!</body></html>".to_string();
-                write_response(stream.get_mut(), message);
+                let mut f = File::open("public/index.html").expect("file not found");
+
+                let mut contents = String::new();
+                f.read_to_string(&mut contents)
+                    .expect("something went wrong reading the file");
+
+                write_response(stream.get_mut(), contents);
                 break;
             },
             _ => println!("{}", line.trim_right_matches("\r\n")),
