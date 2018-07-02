@@ -35,21 +35,22 @@ fn response(request: Request, stream: &mut BufReader<TcpStream>) {
         let public_path = public_path(&request.uri);
         match stream.read_line(&mut line) {
             Ok(2) => {
-                let mut f = match File::open(public_path) {
-                    Ok(f) => f,
+                let mut (status, f) = match File::open(public_path) {
+                    Ok(f) => (200, f),
                     Err(err) => {
-                        File::open("public/404.html").expect("File not found") 
+                        (404, File::open("public/404.html").expect("File not found"))
                     }
                 };
+    println!("status: {}", status);
 
                 let mut contents = String::new();
                 f.read_to_string(&mut contents)
                     .expect("something went wrong reading the file");
 
-                write_response(stream.get_mut(), contents);
+                write_response(stream.get_mut(), status, contents);
                 break;
             },
-            _ => println!("{}", line.trim_right_matches("\r\n")),
+            Ok(size) => println!("{} {}", line.trim_right_matches("\r\n"), size),
             Err(err) => panic!("error during receive a line: {}", err),
         }
     }
@@ -71,13 +72,13 @@ fn handle_client(stream: TcpStream, addr: SocketAddr) {
 }
 
 fn ok_handler(request: Request, stream: &mut BufReader<TcpStream>) {
-    if request.method == "GET" && request.uri == "/" {
+    if request.method == "GET" {
         response(request, stream);
     }
 }
 
-fn write_response(stream: &mut TcpStream, body: String) {
-    writeln!(stream, "HTTP/1.1 200 OK").unwrap();
+fn write_response(stream: &mut TcpStream, status: u32, body: String) {
+    writeln!(stream, "HTTP/1.1 {} Not Found", status).unwrap();
     writeln!(stream, "Content-Type: text/html; charset=UTF-8").unwrap();
     writeln!(stream, "Content-Length: {}", body.len()).unwrap();
     writeln!(stream).unwrap();
