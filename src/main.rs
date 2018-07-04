@@ -25,8 +25,25 @@ fn debug_request(request: &Request) {
     println!("version: {}", request.version);
 }
 
-fn public_path(path: &String) -> &str {
-    "public/index.html"
+fn public_path(path: &str) -> String {
+    let mut base = String::from("public");
+
+    if path == "/" {
+        base.push_str("/index.html")
+    } else {
+        base.push_str(path)
+    }
+
+    base
+}
+
+fn read_file(path: &str) -> Result<File, File> {
+    match File::open(path) {
+        Ok(f) => Ok(f),
+        Err(err) => {
+            Err(File::open("public/404.html").expect("File not found"))
+        }
+    }
 }
 
 fn response(request: Request, stream: &mut BufReader<TcpStream>) {
@@ -35,14 +52,13 @@ fn response(request: Request, stream: &mut BufReader<TcpStream>) {
         let public_path = public_path(&request.uri);
         match stream.read_line(&mut line) {
             Ok(2) => {
-                let mut (status, f) = match File::open(public_path) {
-                    Ok(f) => (200, f),
-                    Err(err) => {
-                        (404, File::open("public/404.html").expect("File not found"))
-                    }
-                };
-    println!("status: {}", status);
 
+                let (mut f, status) = match read_file(&public_path) {
+                    Ok(f) => (f, 200),
+                    Err(f) => (f, 404)
+                };
+
+                println!("status: {}", status);
                 let mut contents = String::new();
                 f.read_to_string(&mut contents)
                     .expect("something went wrong reading the file");
