@@ -110,7 +110,8 @@ fn write_response(stream: &mut TcpStream, status: u32, body: String) {
     writeln!(stream, "Content-Type: text/html; charset=UTF-8").unwrap();
     writeln!(stream, "Content-Length: {}", body.len()).unwrap();
     writeln!(stream).unwrap();
-    writeln!(stream, "{}", bs).unwrap();
+    stream.write(&bs);
+    // writeln!(stream, "{:?}", bs).unwrap();
 }
 
 fn main() {
