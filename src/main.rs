@@ -110,7 +110,7 @@ fn write_response(stream: &mut TcpStream, status: u32, body: String) {
 
     writeln!(stream, "HTTP/1.1 {} Not Found", status).unwrap();
     writeln!(stream, "Content-Type: text/html; charset=UTF-8").unwrap();
-    writeln!(stream, "Content-Length: {}", body.len()).unwrap();
+    writeln!(stream, "Content-Length: {}", bs.len()).unwrap();
     writeln!(stream, "content-encoding: gzip").unwrap();
     writeln!(stream).unwrap();
     stream.write(&bs);
