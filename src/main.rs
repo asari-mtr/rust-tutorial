@@ -1,12 +1,14 @@
 use std::thread;
 use std::str::SplitWhitespace;
+use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
-use std::io::{Write, BufRead, BufReader};
+use std::io::{Write, BufWriter, BufRead, BufReader};
 use std::net::{TcpListener, TcpStream, SocketAddr};
 
 extern crate flate2;
 use flate2::Compression;
+use flate2::write::GzEncoder;
 use flate2::write::ZlibEncoder;
 
 struct Request {
@@ -98,7 +100,7 @@ fn ok_handler(request: Request, stream: &mut BufReader<TcpStream>) {
 }
 
 fn write_response(stream: &mut TcpStream, status: u32, body: String) {
-    let mut e = ZlibEncoder::new(Vec::new(), Compression::default());
+    let mut e = GzEncoder::new(Vec::new(), Compression::default());
 
     e.write(body.as_bytes());
     let bs = match e.finish() {
@@ -109,6 +111,7 @@ fn write_response(stream: &mut TcpStream, status: u32, body: String) {
     writeln!(stream, "HTTP/1.1 {} Not Found", status).unwrap();
     writeln!(stream, "Content-Type: text/html; charset=UTF-8").unwrap();
     writeln!(stream, "Content-Length: {}", body.len()).unwrap();
+    writeln!(stream, "content-encoding: gzip").unwrap();
     writeln!(stream).unwrap();
     stream.write(&bs);
     // writeln!(stream, "{:?}", bs).unwrap();
