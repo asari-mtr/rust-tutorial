@@ -64,7 +64,7 @@ fn response(request: Request, stream: &mut BufReader<TcpStream>) {
                     Err(f) => (f, 404)
                 };
 
-                println!("status: {}", status);
+                // println!("status: {}", status);
                 let mut contents = String::new();
                 f.read_to_string(&mut contents)
                     .expect("something went wrong reading the file");
@@ -72,7 +72,8 @@ fn response(request: Request, stream: &mut BufReader<TcpStream>) {
                 write_response(stream.get_mut(), status, contents);
                 break;
             },
-            Ok(size) => println!("{} {}", line.trim_right_matches("\r\n"), size),
+            // Ok(size) => println!("{} {}", line.trim_right_matches("\r\n"), size),
+            Ok(_) => (),
             Err(err) => panic!("error during receive a line: {}", err),
         }
     }
@@ -85,8 +86,8 @@ fn handle_client(stream: TcpStream, addr: SocketAddr) {
     match stream.read_line(&mut request_line) {
         Ok(_) => {
             let request = create_request(&mut request_line.split_whitespace());
-            debug_request(&request);
-            println!("ip: {}", addr.ip());
+            // debug_request(&request);
+            // println!("ip: {}", addr.ip());
             ok_handler(request, &mut stream)
         },
         Err(err) => panic!("error during receive a line: {}", err),
@@ -108,11 +109,11 @@ fn write_response(stream: &mut TcpStream, status: u32, body: String) {
         Err(e) => panic!("fail encode to zip: {}", e)
     };
 
-    writeln!(stream, "HTTP/1.1 {} Not Found", status).unwrap();
-    writeln!(stream, "Content-Type: text/html; charset=UTF-8").unwrap();
-    writeln!(stream, "Content-Length: {}", bs.len()).unwrap();
-    writeln!(stream, "content-encoding: gzip").unwrap();
-    writeln!(stream).unwrap();
+    writeln!(stream, "HTTP/1.1 {} Not Found", status);
+    writeln!(stream, "Content-Type: text/html; charset=UTF-8");
+    writeln!(stream, "Content-Length: {}", bs.len());
+    writeln!(stream, "content-encoding: gzip");
+    writeln!(stream);
     stream.write(&bs);
     // writeln!(stream, "{:?}", bs).unwrap();
 }
