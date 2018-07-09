@@ -22,12 +22,6 @@ fn create_request(iter: &mut SplitWhitespace) -> Request {
     }
 }
 
-fn debug_request(request: &Request) {
-    println!("method: {}", request.method);
-    println!("uri: {}", request.uri);
-    println!("version: {}", request.version);
-}
-
 fn public_path(path: &str) -> String {
     let mut base = String::from("public");
 
@@ -83,7 +77,7 @@ fn handle_client(stream: TcpStream, addr: SocketAddr) {
     match stream.read_line(&mut request_line) {
         Ok(_) => {
             let request = create_request(&mut request_line.split_whitespace());
-             debug_request(&request);
+             request.debug_request();
             // println!("ip: {}", addr.ip());
             ok_handler(request, &mut stream)
         },

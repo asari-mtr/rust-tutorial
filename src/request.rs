@@ -3,3 +3,11 @@ pub struct Request {
     pub uri: String,
     pub version: String,
 }
+
+impl Request {
+    pub fn debug_request(&self) {
+        println!("method: {}", self.method);
+        println!("uri: {}", self.uri);
+        println!("version: {}", self.version);
+    }
+}
