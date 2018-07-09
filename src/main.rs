@@ -13,14 +13,7 @@ use flate2::write::ZlibEncoder;
 
 mod request;
 use request::Request;
-
-fn create_request(iter: &mut SplitWhitespace) -> Request {
-    Request {
-        method: iter.next().unwrap().to_string(),
-        uri: iter.next().unwrap().to_string(),
-        version: iter.next().unwrap().to_string(),
-    }
-}
+use request::create_request;
 
 fn public_path(path: &str) -> String {
     let mut base = String::from("public");
