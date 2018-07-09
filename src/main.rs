@@ -11,11 +11,8 @@ use flate2::Compression;
 use flate2::write::GzEncoder;
 use flate2::write::ZlibEncoder;
 
-struct Request {
-    method: String,
-    uri: String,
-    version: String,
-}
+mod request;
+use request::Request;
 
 fn create_request(iter: &mut SplitWhitespace) -> Request {
     Request {
@@ -86,7 +83,7 @@ fn handle_client(stream: TcpStream, addr: SocketAddr) {
     match stream.read_line(&mut request_line) {
         Ok(_) => {
             let request = create_request(&mut request_line.split_whitespace());
-            // debug_request(&request);
+             debug_request(&request);
             // println!("ip: {}", addr.ip());
             ok_handler(request, &mut stream)
         },
