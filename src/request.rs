@@ -6,15 +6,15 @@ pub struct Request {
     pub version: String,
 }
 
-pub fn create_request(iter: &mut SplitWhitespace) -> Request {
-    Request {
-        method: iter.next().unwrap().to_string(),
-        uri: iter.next().unwrap().to_string(),
-        version: iter.next().unwrap().to_string(),
-    }
-}
-
 impl Request {
+    pub fn create_request(iter: &mut SplitWhitespace) -> Request {
+        Request {
+            method: iter.next().unwrap().to_string(),
+            uri: iter.next().unwrap().to_string(),
+            version: iter.next().unwrap().to_string(),
+        }
+    }
+
     pub fn debug_request(&self) {
         println!("method: {}", self.method);
         println!("uri: {}", self.uri);

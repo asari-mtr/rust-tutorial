@@ -12,8 +12,7 @@ use flate2::write::GzEncoder;
 use flate2::write::ZlibEncoder;
 
 mod request;
-use request::Request;
-use request::create_request;
+use request::*;
 
 fn public_path(path: &str) -> String {
     let mut base = String::from("public");
@@ -69,16 +68,16 @@ fn handle_client(stream: TcpStream, addr: SocketAddr) {
     let mut request_line = String::new();
     match stream.read_line(&mut request_line) {
         Ok(_) => {
-            let request = create_request(&mut request_line.split_whitespace());
+            let request = Request::create_request(&mut request_line.split_whitespace());
              request.debug_request();
             // println!("ip: {}", addr.ip());
-            ok_handler(request, &mut stream)
+            dispatch(request, &mut stream)
         },
         Err(err) => panic!("error during receive a line: {}", err),
     }
 }
 
-fn ok_handler(request: Request, stream: &mut BufReader<TcpStream>) {
+fn dispatch(request: Request, stream: &mut BufReader<TcpStream>) {
     if request.method == "GET" {
         response(request, stream);
     }
