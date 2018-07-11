@@ -13,6 +13,9 @@ use request::*;
 
 type StatusCode = u32;
 
+const OK:           StatusCode = 200;
+const NOT_FOUND:    StatusCode = 404;
+
 fn public_path(path: &str) -> String {
     let mut base = String::from("public");
 
@@ -40,8 +43,8 @@ fn response(request: Request, stream: &mut BufReader<TcpStream>) {
             Ok(2) => {
 
                 let (mut f, status) = match read_file(&public_path) {
-                    Ok(f) => (f, 200),
-                    Err(f) => (f, 404)
+                    Ok(f) => (f, OK),
+                    Err(f) => (f, NOT_FOUND)
                 };
 
                 // println!("status: {}", status);
@@ -100,9 +103,9 @@ fn write_response(stream: &mut TcpStream, status: StatusCode, body: String) {
 
 fn status_comment(status: StatusCode) -> String {
     match status {
-        200 => String::from("OK"),
-        404 => String::from("Not Found"),
-        _ => String::from("")
+        OK              => String::from("OK"),
+        NOT_FOUND       => String::from("Not Found"),
+        _               => String::from("")
     }
 }
 
@@ -116,9 +119,7 @@ fn main() {
                     handle_client(stream, addr)
                 });
             }
-            Err(_) => {
-                println!("Connection fail!");
-            }
+            Err(_) => println!("Connection fail!")
         }
     }
 }
