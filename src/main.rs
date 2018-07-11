@@ -1,14 +1,12 @@
 use std::thread;
-use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
-use std::io::{Write, BufWriter, BufRead, BufReader};
+use std::io::{Write, BufRead, BufReader};
 use std::net::{TcpListener, TcpStream, SocketAddr};
 
 extern crate flate2;
 use flate2::Compression;
 use flate2::write::GzEncoder;
-use flate2::write::ZlibEncoder;
 
 mod request;
 use request::*;

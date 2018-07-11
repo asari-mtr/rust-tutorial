@@ -1,5 +1,3 @@
-use std::str::SplitWhitespace;
-
 pub struct Request {
     pub method: String,
     pub uri: String,
