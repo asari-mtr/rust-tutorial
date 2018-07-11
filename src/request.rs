@@ -7,7 +7,8 @@ pub struct Request {
 }
 
 impl Request {
-    pub fn create_request(iter: &mut SplitWhitespace) -> Request {
+    pub fn create_request(line: String) -> Request {
+        let mut iter = line.split_whitespace();
         Request {
             method: iter.next().unwrap().to_string(),
             uri: iter.next().unwrap().to_string(),

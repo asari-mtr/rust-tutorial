@@ -1,5 +1,4 @@
 use std::thread;
-use std::str::SplitWhitespace;
 use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
@@ -13,6 +12,8 @@ use flate2::write::ZlibEncoder;
 
 mod request;
 use request::*;
+
+type StatusCode = u32;
 
 fn public_path(path: &str) -> String {
     let mut base = String::from("public");
@@ -29,9 +30,7 @@ fn public_path(path: &str) -> String {
 fn read_file(path: &str) -> Result<File, File> {
     match File::open(path) {
         Ok(f) => Ok(f),
-        Err(err) => {
-            Err(File::open("public/404.html").expect("File not found"))
-        }
+        Err(err) => Err(File::open("public/404.html").expect("File not found")) 
     }
 }
 
@@ -68,7 +67,7 @@ fn handle_client(stream: TcpStream, addr: SocketAddr) {
     let mut request_line = String::new();
     match stream.read_line(&mut request_line) {
         Ok(_) => {
-            let request = Request::create_request(&mut request_line.split_whitespace());
+            let request = Request::create_request(request_line);
              request.debug_request();
             // println!("ip: {}", addr.ip());
             dispatch(request, &mut stream)
@@ -83,7 +82,7 @@ fn dispatch(request: Request, stream: &mut BufReader<TcpStream>) {
     }
 }
 
-fn write_response(stream: &mut TcpStream, status: u32, body: String) {
+fn write_response(stream: &mut TcpStream, status: StatusCode, body: String) {
     let mut e = GzEncoder::new(Vec::new(), Compression::default());
 
     e.write(body.as_bytes());
@@ -92,13 +91,21 @@ fn write_response(stream: &mut TcpStream, status: u32, body: String) {
         Err(e) => panic!("fail encode to zip: {}", e)
     };
 
-    writeln!(stream, "HTTP/1.1 {} Not Found", status);
+    writeln!(stream, "HTTP/1.1 {} {}", status, status_comment(status));
     writeln!(stream, "Content-Type: text/html; charset=UTF-8");
     writeln!(stream, "Content-Length: {}", bs.len());
     writeln!(stream, "content-encoding: gzip");
     writeln!(stream);
     stream.write(&bs);
     // writeln!(stream, "{:?}", bs).unwrap();
+}
+
+fn status_comment(status: StatusCode) -> String {
+    match status {
+        200 => String::from("OK"),
+        404 => String::from("Not Found"),
+        _ => String::from("")
+    }
 }
 
 fn main() {
