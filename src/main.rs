@@ -36,60 +36,43 @@ fn read_file(path: &str) -> Result<File, File> {
 }
 
 fn response(request: Request, stream: &mut BufReader<TcpStream>) {
-    let mut line = String::new();
     let public_path = public_path(&request.uri);
-    loop {
-        match stream.read_line(&mut line) {
-            Ok(_) => {
-                let (mut f, status) = match read_file(&public_path) {
-                    Ok(f) => (f, OK),
-                    Err(f) => (f, NOT_FOUND)
-                };
+    let (mut f, status) = match read_file(&public_path) {
+        Ok(f) => (f, OK),
+        Err(f) => (f, NOT_FOUND)
+    };
 
-                // println!("status: {}", status);
-                let mut contents = String::new();
-                f.read_to_string(&mut contents)
-                    .expect("something went wrong reading the file");
+    let mut contents = String::new();
+    f.read_to_string(&mut contents)
+        .expect("something went wrong reading the file");
 
-                write_response(stream.get_mut(), status, contents);
-                break;
-            },
-            Err(err) => panic!("error during receive a line: {}", err),
-        }
-    }
+    write_response(stream.get_mut(), status, contents);
 }
 
 fn handle_client(stream: TcpStream, addr: SocketAddr) {
     let mut stream = BufReader::new(stream);
 
     let mut request_line = String::new();
-
     let request = match stream.read_line(&mut request_line) {
-        Ok(_) => {
-            let request = Request::create_request(&request_line);
-            request.debug_request();
-            request
-        },
+        Ok(_) => Request::create_request(&request_line),
         Err(err) => panic!("error during receive a line: {}", err),
     };
+    request.debug_request();
 
-    // let mut array: Vec<String> = create_header(stream.get_mut());
-    // println!("ip: {}", addr.ip());
     let mut headers: Vec<String>  = vec!();
 
     loop {
         let mut request_line = String::new();
         match stream.read_line(&mut request_line) {
-            Ok(size) if size> 2 => {
-                println!("header: {}", request_line);
-                headers.push(request_line.to_string())
-            },
+            Ok(size) if size > 2 => headers.push(request_line.trim().to_string()),
             Ok(_) =>  break,
             Err(err) => panic!("error during receive a line: {}", err),
         }
     }
 
-    // return headers
+    for header in headers.iter() {
+        println!("{}", header);
+    }
     
     dispatch(request, &mut stream);
 }
