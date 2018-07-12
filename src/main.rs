@@ -63,40 +63,56 @@ fn handle_client(stream: TcpStream, addr: SocketAddr) {
     let mut stream = BufReader::new(stream);
 
     let mut request_line = String::new();
-    match stream.read_line(&mut request_line) {
+
+    let request = match stream.read_line(&mut request_line) {
         Ok(_) => {
-            let request = Request::create_request(request_line);
+            let request = Request::create_request(&request_line);
             request.debug_request();
-            let mut array: Vec<String> = create_header(stream.get_mut());
-            // println!("ip: {}", addr.ip());
-            dispatch(request, &mut stream)
+            request
         },
         Err(err) => panic!("error during receive a line: {}", err),
-    }
-}
+    };
 
-fn create_header(stream: &mut TcpStream) -> Vec<String> {
+    // let mut array: Vec<String> = create_header(stream.get_mut());
+    // println!("ip: {}", addr.ip());
     let mut headers: Vec<String>  = vec!();
-    let mut stream = BufReader::new(stream);
-    let mut line = String::new();
-    println!("create_header");
+
     loop {
-        println!("read");
-        match stream.read_line(&mut line) {
-            Ok(line) if line > 2 => {
-                println!("header: {}", line);
-                headers.push(line.to_string())
+        let mut request_line = String::new();
+        match stream.read_line(&mut request_line) {
+            Ok(size) if size> 2 => {
+                println!("header: {}", request_line);
+                headers.push(request_line.to_string())
             },
-            Ok(size) => {
-                println!("header: {}({})", line, size);
-                break;
-            },
+            Ok(_) =>  break,
             Err(err) => panic!("error during receive a line: {}", err),
         }
     }
-    println!("create_header finish");
-    return headers
+
+    // return headers
+    
+    dispatch(request, &mut stream);
 }
+
+// fn create_header(stream: &mut TcpStream) -> Vec<String> {
+//     loop {
+//         println!("read");
+//         match stream.read_line(&mut line) {
+//             Ok(size) if size> 2 => {
+//                 println!("header: {}", line);
+//                 headers.push(line.to_string());
+//                 break;
+//             },
+//             Ok(size) => {
+//                 println!("header: {}({})", line, size);
+//                 break;
+//             },
+//             Err(err) => panic!("error during receive a line: {}", err),
+//         }
+//     }
+//     println!("create_header finish");
+//     return headers
+// }
 
 fn dispatch(request: Request, stream: &mut BufReader<TcpStream>) {
     if request.method == "GET" {
