@@ -58,7 +58,11 @@ fn handle_client(stream: TcpStream, addr: SocketAddr) {
         Err(err) => panic!("error during receive a line: {}", err),
     };
     request.debug_request();
+    create_header(&mut stream);
+    dispatch(request, &mut stream);
+}
 
+fn create_header(stream: &mut BufReader<TcpStream>) -> Vec<String> {
     let mut headers: Vec<String>  = vec!();
 
     loop {
@@ -73,29 +77,9 @@ fn handle_client(stream: TcpStream, addr: SocketAddr) {
     for header in headers.iter() {
         println!("{}", header);
     }
-    
-    dispatch(request, &mut stream);
-}
 
-// fn create_header(stream: &mut TcpStream) -> Vec<String> {
-//     loop {
-//         println!("read");
-//         match stream.read_line(&mut line) {
-//             Ok(size) if size> 2 => {
-//                 println!("header: {}", line);
-//                 headers.push(line.to_string());
-//                 break;
-//             },
-//             Ok(size) => {
-//                 println!("header: {}({})", line, size);
-//                 break;
-//             },
-//             Err(err) => panic!("error during receive a line: {}", err),
-//         }
-//     }
-//     println!("create_header finish");
-//     return headers
-// }
+    headers
+}
 
 fn dispatch(request: Request, stream: &mut BufReader<TcpStream>) {
     if request.method == "GET" {
@@ -118,7 +102,6 @@ fn write_response(stream: &mut TcpStream, status: StatusCode, body: String) {
     writeln!(stream, "content-encoding: gzip");
     writeln!(stream);
     stream.write(&bs);
-    // writeln!(stream, "{:?}", bs).unwrap();
 }
 
 fn status_comment(status: StatusCode) -> String {
