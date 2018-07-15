@@ -4,6 +4,8 @@ use std::io::prelude::*;
 use std::io::{Write, BufRead, BufReader};
 use std::net::{TcpListener, TcpStream, SocketAddr};
 
+use std::collections::HashMap;
+
 extern crate flate2;
 use flate2::Compression;
 use flate2::write::GzEncoder;
@@ -62,23 +64,29 @@ fn handle_client(stream: TcpStream, _addr: SocketAddr) {
     dispatch(request, &mut stream);
 }
 
-fn create_header(stream: &mut BufReader<TcpStream>) -> Vec<String> {
-    let mut headers: Vec<String>  = vec!();
+fn create_header(stream: &mut BufReader<TcpStream>) -> HashMap<String, String> {
+    let mut hash: HashMap<String, String>  = HashMap::new();
 
     loop {
         let mut request_line = String::new();
         match stream.read_line(&mut request_line) {
-            Ok(size) if size > 2 => headers.push(request_line.trim().to_string()),
+            Ok(size) if size > 2 => {
+                let mut contents = request_line.split(":");
+                hash.insert(
+                    contents.next().unwrap().trim().to_string(),
+                    contents.next().unwrap().trim().to_string());
+            },
             Ok(_) =>  break,
             Err(err) => panic!("error during receive a line: {}", err),
         }
     }
 
-    for header in headers.iter() {
-        println!("{}", header);
+
+    for (key, val) in hash.iter() {
+        println!("key: {}, val: {}", key, val);
     }
 
-    headers
+    hash
 }
 
 fn dispatch(request: Request, stream: &mut BufReader<TcpStream>) {
