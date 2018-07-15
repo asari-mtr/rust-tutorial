@@ -31,7 +31,7 @@ fn public_path(path: &str) -> String {
 fn read_file(path: &str) -> Result<File, File> {
     match File::open(path) {
         Ok(f) => Ok(f),
-        Err(err) => Err(File::open("public/404.html").expect("File not found")) 
+        Err(_) => Err(File::open("public/404.html").expect("File not found"))
     }
 }
 
@@ -49,7 +49,7 @@ fn response(request: Request, stream: &mut BufReader<TcpStream>) {
     write_response(stream.get_mut(), status, contents);
 }
 
-fn handle_client(stream: TcpStream, addr: SocketAddr) {
+fn handle_client(stream: TcpStream, _addr: SocketAddr) {
     let mut stream = BufReader::new(stream);
 
     let mut request_line = String::new();
@@ -90,18 +90,18 @@ fn dispatch(request: Request, stream: &mut BufReader<TcpStream>) {
 fn write_response(stream: &mut TcpStream, status: StatusCode, body: String) {
     let mut e = GzEncoder::new(Vec::new(), Compression::default());
 
-    e.write(body.as_bytes());
+    e.write(body.as_bytes()).unwrap();
     let bs = match e.finish() {
         Ok(v) => v,
         Err(e) => panic!("fail encode to zip: {}", e)
     };
 
-    writeln!(stream, "HTTP/1.1 {} {}", status, status_comment(status));
-    writeln!(stream, "Content-Type: text/html; charset=UTF-8");
-    writeln!(stream, "Content-Length: {}", bs.len());
-    writeln!(stream, "content-encoding: gzip");
-    writeln!(stream);
-    stream.write(&bs);
+    writeln!(stream, "HTTP/1.1 {} {}", status, status_comment(status)).unwrap();
+    writeln!(stream, "Content-Type: text/html; charset=UTF-8").unwrap();
+    writeln!(stream, "Content-Length: {}", bs.len()).unwrap();
+    writeln!(stream, "content-encoding: gzip").unwrap();
+    writeln!(stream).unwrap();
+    stream.write(&bs).unwrap();
 }
 
 fn status_comment(status: StatusCode) -> String {
