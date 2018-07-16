@@ -37,7 +37,7 @@ fn read_file(path: &str) -> Result<File, File> {
     }
 }
 
-fn response(request: Request, stream: &mut BufReader<TcpStream>) {
+fn response(request: Request, stream: &mut TcpStream) {
     let public_path = public_path(&request.uri);
     let (mut f, status) = match read_file(&public_path) {
         Ok(f) => (f, OK),
@@ -48,7 +48,7 @@ fn response(request: Request, stream: &mut BufReader<TcpStream>) {
     f.read_to_string(&mut contents)
         .expect("something went wrong reading the file");
 
-    write_response(stream.get_mut(), status, contents);
+    write_response(stream, status, contents);
 }
 
 fn handle_client(stream: TcpStream, _addr: SocketAddr) {
@@ -61,7 +61,7 @@ fn handle_client(stream: TcpStream, _addr: SocketAddr) {
     };
     request.debug_request();
     create_header(&mut stream);
-    dispatch(request, &mut stream);
+    dispatch(request, stream.get_mut());
 }
 
 fn create_header(stream: &mut BufReader<TcpStream>) -> HashMap<String, String> {
@@ -71,6 +71,7 @@ fn create_header(stream: &mut BufReader<TcpStream>) -> HashMap<String, String> {
         let mut request_line = String::new();
         match stream.read_line(&mut request_line) {
             Ok(size) if size > 2 => {
+                // TODO: if fail to  split?
                 let mut contents = request_line.split(":");
                 hash.insert(
                     contents.next().unwrap().trim().to_string(),
@@ -89,7 +90,7 @@ fn create_header(stream: &mut BufReader<TcpStream>) -> HashMap<String, String> {
     hash
 }
 
-fn dispatch(request: Request, stream: &mut BufReader<TcpStream>) {
+fn dispatch(request: Request, stream: &mut TcpStream) {
     if request.method == "GET" {
         response(request, stream);
     }
