@@ -37,20 +37,6 @@ fn read_file(path: &str) -> Result<File, File> {
     }
 }
 
-fn response(request: Request, stream: &mut TcpStream) {
-    let public_path = public_path(&request.uri);
-    let (mut f, status) = match read_file(&public_path) {
-        Ok(f) => (f, OK),
-        Err(f) => (f, NOT_FOUND)
-    };
-
-    let mut contents = String::new();
-    f.read_to_string(&mut contents)
-        .expect("something went wrong reading the file");
-
-    write_response(stream, status, contents);
-}
-
 fn handle_client(stream: TcpStream, _addr: SocketAddr) {
     let mut stream = BufReader::new(stream);
 
@@ -96,8 +82,22 @@ fn dispatch(request: Request, stream: &mut TcpStream) {
     }
 }
 
-fn write_response(stream: &mut TcpStream, status: StatusCode, body: String) {
+fn response(request: Request, stream: &mut TcpStream) {
+    let public_path = public_path(&request.uri);
+    let (f, status) = match read_file(&public_path) {
+        Ok(f) => (f, OK),
+        Err(f) => (f, NOT_FOUND)
+    };
+
+    write_response(stream, status, f);
+}
+
+fn write_response(stream: &mut TcpStream, status: StatusCode, mut file: File) {
     let mut e = GzEncoder::new(Vec::new(), Compression::default());
+
+    let mut body = String::new();
+    file.read_to_string(&mut body)
+        .expect("something went wrong reading the file");
 
     e.write(body.as_bytes()).unwrap();
     let bs = match e.finish() {
