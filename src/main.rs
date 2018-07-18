@@ -1,4 +1,5 @@
 use std::thread;
+use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::{Write, BufRead, BufReader};
@@ -89,28 +90,28 @@ fn response(request: Request, stream: &mut TcpStream) {
         Err(f) => (f, NOT_FOUND)
     };
 
-    write_response(stream, status, f);
-}
-
-fn write_response(stream: &mut TcpStream, status: StatusCode, mut file: File) {
     let mut e = GzEncoder::new(Vec::new(), Compression::default());
 
-    let mut body = String::new();
-    file.read_to_string(&mut body)
-        .expect("something went wrong reading the file");
+    // let mut body = String::new();
+    // file.read_to_string(&mut body)
+    //     .expect("something went wrong reading the file");
 
-    e.write(body.as_bytes()).unwrap();
-    let bs = match e.finish() {
-        Ok(v) => v,
-        Err(e) => panic!("fail encode to zip: {}", e)
-    };
+    // e.write(body.as_bytes()).unwrap();
+    // let bs = match e.finish() {
+    //     Ok(v) => v,
+    //     Err(e) => panic!("fail encode to zip: {}", e)
+    // };
 
-    writeln!(stream, "HTTP/1.1 {} {}", status, status_comment(status)).unwrap();
-    writeln!(stream, "Content-Type: text/html; charset=UTF-8").unwrap();
-    writeln!(stream, "Content-Length: {}", bs.len()).unwrap();
-    writeln!(stream, "content-encoding: gzip").unwrap();
-    writeln!(stream).unwrap();
-    stream.write(&bs).unwrap();
+    loop {
+        let data = fs::read(&public_path).expect("Unable to read file");
+
+        writeln!(stream, "HTTP/1.1 {} {}", status, status_comment(status)).unwrap();
+        writeln!(stream, "Content-Type: image/jpg; charset=UTF-8").unwrap();
+        writeln!(stream, "Content-Length: {}", data.len()).unwrap();
+        writeln!(stream).unwrap();
+
+        stream.write(&data).unwrap();
+    }
 }
 
 fn status_comment(status: StatusCode) -> String {
