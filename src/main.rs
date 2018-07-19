@@ -102,16 +102,14 @@ fn response(request: Request, stream: &mut TcpStream) {
     //     Err(e) => panic!("fail encode to zip: {}", e)
     // };
 
-    loop {
-        let data = fs::read(&public_path).expect("Unable to read file");
+    let data = fs::read(&public_path).expect("Unable to read file");
 
-        writeln!(stream, "HTTP/1.1 {} {}", status, status_comment(status)).unwrap();
-        writeln!(stream, "Content-Type: image/jpg; charset=UTF-8").unwrap();
-        writeln!(stream, "Content-Length: {}", data.len()).unwrap();
-        writeln!(stream).unwrap();
+    writeln!(stream, "HTTP/1.1 {} {}", status, status_comment(status)).unwrap();
+    writeln!(stream, "Content-Type: image/jpg; charset=UTF-8").unwrap();
+    writeln!(stream, "Content-Length: {}", data.len()).unwrap();
+    writeln!(stream).unwrap();
 
-        stream.write(&data).unwrap();
-    }
+    stream.write(&data).unwrap();
 }
 
 fn status_comment(status: StatusCode) -> String {
