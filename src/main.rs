@@ -90,26 +90,27 @@ fn response(request: Request, stream: &mut TcpStream) {
         Err(f) => (f, NOT_FOUND)
     };
 
-    let mut e = GzEncoder::new(Vec::new(), Compression::default());
-
     // let mut body = String::new();
     // file.read_to_string(&mut body)
     //     .expect("something went wrong reading the file");
-
-    // e.write(body.as_bytes()).unwrap();
-    // let bs = match e.finish() {
-    //     Ok(v) => v,
-    //     Err(e) => panic!("fail encode to zip: {}", e)
-    // };
 
     let data = fs::read(&public_path).expect("Unable to read file");
 
     writeln!(stream, "HTTP/1.1 {} {}", status, status_comment(status)).unwrap();
     writeln!(stream, "Content-Type: image/jpg; charset=UTF-8").unwrap();
     writeln!(stream, "Content-Length: {}", data.len()).unwrap();
+    writeln!(stream, "Content-encoding: gzip").unwrap();
     writeln!(stream).unwrap();
 
-    stream.write(&data).unwrap();
+    let mut e = GzEncoder::new(Vec::new(), Compression::default());
+
+    e.write(&data).unwrap();
+    let bs = match e.finish() {
+        Ok(v) => v,
+        Err(e) => panic!("fail encode to zip: {}", e)
+    };
+
+    stream.write(&bs).unwrap();
 }
 
 fn status_comment(status: StatusCode) -> String {
