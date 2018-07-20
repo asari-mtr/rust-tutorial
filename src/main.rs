@@ -15,8 +15,8 @@ mod request;
 use request::*;
 
 type StatusCode = u32;
-type ResponseHeaders = HashMap<String, String>;
 type RequestHeaders = HashMap<String, String>;
+type ResponseHeaders = Vec<String>;
 
 const OK:           StatusCode = 200;
 const NOT_FOUND:    StatusCode = 404;
@@ -85,6 +85,22 @@ fn dispatch(request: Request, stream: &mut TcpStream) {
     }
 }
 
+fn write_http_status_line(headers: &mut ResponseHeaders, status: StatusCode) {
+    headers.push(format!("HTTP/1.1 {} {}", status, status_comment(status)));
+}
+
+fn write_content_type(headers: &mut ResponseHeaders) {
+    headers.push("Content-Type: image/jpg; charset=UTF-8".to_string());
+}
+
+fn write_content_length(headers: &mut ResponseHeaders, size: usize) {
+    headers.push(format!("Content-Length: {}", size));
+}
+
+fn write_content_encoding(headers: &mut ResponseHeaders) {
+    headers.push("Content-encoding: gzip".to_string());
+}
+
 fn response(request: Request, stream: &mut TcpStream) {
     let public_path = public_path(&request.uri);
     let (f, status) = match read_file(&public_path) {
@@ -98,10 +114,15 @@ fn response(request: Request, stream: &mut TcpStream) {
 
     let data = fs::read(&public_path).expect("Unable to read file");
 
-    writeln!(stream, "HTTP/1.1 {} {}", status, status_comment(status)).unwrap();
-    writeln!(stream, "Content-Type: image/jpg; charset=UTF-8").unwrap();
-    writeln!(stream, "Content-Length: {}", data.len()).unwrap();
-    writeln!(stream, "Content-encoding: gzip").unwrap();
+    let mut headers = ResponseHeaders::new();
+    write_http_status_line(&mut headers, status);
+    write_content_type(&mut headers);
+    write_content_length(&mut headers, data.len());
+    write_content_encoding(&mut headers);
+
+    for header in headers {
+        writeln!(stream, "{}", header).unwrap();
+    }
     writeln!(stream).unwrap();
 
     let mut e = GzEncoder::new(Vec::new(), Compression::default());
