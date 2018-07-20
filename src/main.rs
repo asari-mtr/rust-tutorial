@@ -15,6 +15,8 @@ mod request;
 use request::*;
 
 type StatusCode = u32;
+type ResponseHeaders = HashMap<String, String>;
+type RequestHeaders = HashMap<String, String>;
 
 const OK:           StatusCode = 200;
 const NOT_FOUND:    StatusCode = 404;
@@ -51,8 +53,8 @@ fn handle_client(stream: TcpStream, _addr: SocketAddr) {
     dispatch(request, stream.get_mut());
 }
 
-fn create_header(stream: &mut BufReader<TcpStream>) -> HashMap<String, String> {
-    let mut hash: HashMap<String, String>  = HashMap::new();
+fn create_header(stream: &mut BufReader<TcpStream>) -> RequestHeaders {
+    let mut hash = RequestHeaders::new();
 
     loop {
         let mut request_line = String::new();
