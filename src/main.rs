@@ -1,11 +1,8 @@
 use std::thread;
 use std::fs;
 use std::fs::File;
-use std::io::prelude::*;
-use std::io::{Write, BufRead, BufReader};
+use std::io::{Write, BufWriter};
 use std::net::{TcpListener, TcpStream, SocketAddr};
-
-use std::collections::HashMap;
 
 extern crate flate2;
 use flate2::Compression;
@@ -15,7 +12,6 @@ mod request;
 use request::*;
 
 type StatusCode = u32;
-type RequestHeaders = HashMap<String, String>;
 type ResponseHeaders = Vec<String>;
 
 const OK:           StatusCode = 200;
@@ -41,45 +37,13 @@ fn read_file(path: &str) -> Result<File, File> {
 }
 
 fn handle_client(stream: TcpStream, _addr: SocketAddr) {
-    let mut stream = BufReader::new(stream);
+    let request = Request::init(&stream);
 
-    let mut request_line = String::new();
-    let request = match stream.read_line(&mut request_line) {
-        Ok(_) => Request::create_request(&request_line),
-        Err(err) => panic!("error during receive a line: {}", err),
-    };
     request.debug_request();
-    create_header(&mut stream);
-    dispatch(request, stream.get_mut());
+    dispatch(request, stream);
 }
 
-fn create_header(stream: &mut BufReader<TcpStream>) -> RequestHeaders {
-    let mut hash = RequestHeaders::new();
-
-    loop {
-        let mut request_line = String::new();
-        match stream.read_line(&mut request_line) {
-            Ok(size) if size > 2 => {
-                // TODO: if fail to  split?
-                let mut contents = request_line.split(":");
-                hash.insert(
-                    contents.next().unwrap().trim().to_string(),
-                    contents.next().unwrap().trim().to_string());
-            },
-            Ok(_) =>  break,
-            Err(err) => panic!("error during receive a line: {}", err),
-        }
-    }
-
-
-    for (key, val) in hash.iter() {
-        println!("key: {}, val: {}", key, val);
-    }
-
-    hash
-}
-
-fn dispatch(request: Request, stream: &mut TcpStream) {
+fn dispatch(request: Request, stream: TcpStream) {
     if request.method == "GET" {
         response(request, stream);
     }
@@ -101,7 +65,7 @@ fn write_content_encoding(headers: &mut ResponseHeaders) {
     headers.push("Content-encoding: gzip".to_string());
 }
 
-fn response(request: Request, stream: &mut TcpStream) {
+fn response(request: Request, stream: TcpStream) {
     let public_path = public_path(&request.uri);
     let (f, status) = match read_file(&public_path) {
         Ok(f) => (f, OK),
@@ -112,18 +76,8 @@ fn response(request: Request, stream: &mut TcpStream) {
     // file.read_to_string(&mut body)
     //     .expect("something went wrong reading the file");
 
+    println!("{}", public_path);
     let data = fs::read(&public_path).expect("Unable to read file");
-
-    let mut headers = ResponseHeaders::new();
-    write_http_status_line(&mut headers, status);
-    write_content_type(&mut headers);
-    write_content_length(&mut headers, data.len());
-    write_content_encoding(&mut headers);
-
-    for header in headers {
-        writeln!(stream, "{}", header).unwrap();
-    }
-    writeln!(stream).unwrap();
 
     let mut e = GzEncoder::new(Vec::new(), Compression::default());
 
@@ -132,6 +86,19 @@ fn response(request: Request, stream: &mut TcpStream) {
         Ok(v) => v,
         Err(e) => panic!("fail encode to zip: {}", e)
     };
+
+    let mut headers = ResponseHeaders::new();
+    write_http_status_line(&mut headers, status);
+    write_content_type(&mut headers);
+    write_content_length(&mut headers, data.len());
+    write_content_encoding(&mut headers);
+
+    let mut stream = BufWriter::new(stream);
+
+    for header in headers {
+        writeln!(stream, "{}", header).unwrap();
+    }
+    writeln!(stream).unwrap();
 
     stream.write(&bs).unwrap();
 }
