@@ -1,8 +1,8 @@
 use std::thread;
 use std::fs;
-use std::fs::File;
 use std::io::{Write, BufWriter};
 use std::net::{TcpListener, TcpStream, SocketAddr};
+use std::path::Path;
 
 extern crate flate2;
 use flate2::Compression;
@@ -27,13 +27,6 @@ fn public_path(path: &str) -> String {
     }
 
     base
-}
-
-fn read_file(path: &str) -> Result<File, File> {
-    match File::open(path) {
-        Ok(f) => Ok(f),
-        Err(_) => Err(File::open("public/404.html").expect("File not found"))
-    }
 }
 
 fn handle_client(stream: TcpStream, _addr: SocketAddr) {
@@ -67,16 +60,19 @@ fn write_content_encoding(headers: &mut ResponseHeaders) {
 
 fn response(request: Request, stream: TcpStream) {
     let public_path = public_path(&request.uri);
-    let (f, status) = match read_file(&public_path) {
-        Ok(f) => (f, OK),
-        Err(f) => (f, NOT_FOUND)
+
+    let (public_path, status) = if Path::new(&public_path).exists() {
+        (public_path, OK)
+    } else {
+        ("public/404.html".to_string(), NOT_FOUND)
     };
+
+    println!("{}", public_path);
 
     // let mut body = String::new();
     // file.read_to_string(&mut body)
     //     .expect("something went wrong reading the file");
 
-    println!("{}", public_path);
     let data = fs::read(&public_path).expect("Unable to read file");
 
     let mut e = GzEncoder::new(Vec::new(), Compression::default());
