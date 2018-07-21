@@ -8,6 +8,8 @@ extern crate flate2;
 use flate2::Compression;
 use flate2::write::GzEncoder;
 
+extern crate mime_guess;
+
 mod request;
 use request::*;
 
@@ -46,8 +48,9 @@ fn write_http_status_line(headers: &mut ResponseHeaders, status: StatusCode) {
     headers.push(format!("HTTP/1.1 {} {}", status, status_comment(status)));
 }
 
-fn write_content_type(headers: &mut ResponseHeaders) {
-    headers.push("Content-Type: image/jpg; charset=UTF-8".to_string());
+fn write_content_type(public_path: &str, headers: &mut ResponseHeaders) {
+    let mime = mime_guess::guess_mime_type(public_path).to_string();
+    headers.push(format!("Content-Type: {}; charset=UTF-8", mime));
 }
 
 fn write_content_length(headers: &mut ResponseHeaders, size: usize) {
@@ -85,7 +88,7 @@ fn response(request: Request, stream: TcpStream) {
 
     let mut headers = ResponseHeaders::new();
     write_http_status_line(&mut headers, status);
-    write_content_type(&mut headers);
+    write_content_type(&public_path, &mut headers);
     write_content_length(&mut headers, data.len());
     write_content_encoding(&mut headers);
 
