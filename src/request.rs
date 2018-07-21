@@ -21,16 +21,12 @@ impl Request {
             Err(err) => panic!("error during receive a line: {}", err),
         };
 
-        Request::create_request(&request_line, &mut stream)
-    }
-
-    fn create_request(line: &str, stream: &mut BufReader<&TcpStream>) -> Request {
-        let mut iter = line.split_whitespace();
+        let mut iter = request_line.split_whitespace();
         Request {
             method: iter.next().unwrap().to_string(),
             uri: iter.next().unwrap().to_string(),
             version: iter.next().unwrap().to_string(),
-            headers: Request::create_header(stream)
+            headers: Request::create_header(&mut stream)
         }
     }
 
