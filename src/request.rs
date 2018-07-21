@@ -31,7 +31,7 @@ impl Request {
     }
 
     fn create_header(stream: &mut BufReader<&TcpStream>) -> RequestHeaders {
-        let mut hash = RequestHeaders::new();
+        let mut headers = RequestHeaders::new();
 
         loop {
             let mut request_line = String::new();
@@ -39,7 +39,7 @@ impl Request {
                 Ok(size) if size > 2 => {
                     // TODO: if fail to split?
                     let mut contents = request_line.split(":");
-                    hash.insert(
+                    headers.insert(
                         contents.next().unwrap().trim().to_string(),
                         contents.next().unwrap().trim().to_string());
                 },
@@ -48,11 +48,11 @@ impl Request {
             }
         }
 
-        for (key, val) in hash.iter() {
+        for (key, val) in headers.iter() {
             println!("key: {}, val: {}", key, val);
         }
 
-        hash
+        headers
     }
 
     pub fn debug_request(&self) {
