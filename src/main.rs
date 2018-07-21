@@ -11,13 +11,12 @@ use flate2::write::GzEncoder;
 extern crate mime_guess;
 
 mod request;
-use request::*;
+use request::Request;
 
-type StatusCode = u32;
+mod status_code;
+use status_code::StatusCode;
+
 type ResponseHeaders = Vec<String>;
-
-const OK:           StatusCode = 200;
-const NOT_FOUND:    StatusCode = 404;
 
 fn public_path(path: &str) -> String {
     let mut base = String::from("public");
@@ -45,7 +44,7 @@ fn dispatch(request: Request, stream: TcpStream) {
 }
 
 fn write_http_status_line(headers: &mut ResponseHeaders, status: StatusCode) {
-    headers.push(format!("HTTP/1.1 {} {}", status, status_comment(status)));
+    headers.push(format!("HTTP/1.1 {} {}", status.to_u16(), status.status_comment().unwrap()));
 }
 
 fn write_content_type(public_path: &str, headers: &mut ResponseHeaders) {
@@ -65,9 +64,9 @@ fn response(request: Request, stream: TcpStream) {
     let public_path = public_path(&request.uri);
 
     let (public_path, status) = if Path::new(&public_path).exists() {
-        (public_path, OK)
+        (public_path, StatusCode::Ok)
     } else {
-        ("public/404.html".to_string(), NOT_FOUND)
+        ("public/404.html".to_string(), StatusCode::NotFound)
     };
 
     println!("{}", public_path);
@@ -100,14 +99,6 @@ fn response(request: Request, stream: TcpStream) {
     writeln!(stream).unwrap();
 
     stream.write(&bs).unwrap();
-}
-
-fn status_comment(status: StatusCode) -> String {
-    match status {
-        OK              => String::from("OK"),
-        NOT_FOUND       => String::from("Not Found"),
-        _               => String::from("")
-    }
 }
 
 fn main() {
