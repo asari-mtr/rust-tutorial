@@ -77,12 +77,22 @@ fn response(request: Request, stream: TcpStream) {
 
     let data = fs::read(&public_path).expect("Unable to read file");
 
-    let mut e = GzEncoder::new(Vec::new(), Compression::default());
+    let data = match request.headers.get("Accept-Encoding") {
+        Some(keys) => {
+            // a weak point
+            if keys.contains("gzip") {
+                let mut e = GzEncoder::new(Vec::new(), Compression::default());
 
-    e.write(&data).unwrap();
-    let bs = match e.finish() {
-        Ok(v) => v,
-        Err(e) => panic!("fail encode to zip: {}", e)
+                e.write(&data).unwrap();
+                match e.finish() {
+                    Ok(v) => v,
+                    Err(e) => panic!("fail encode to zip: {}", e)
+                }
+            } else {
+                data
+            }
+        },
+        None => data
     };
 
     let mut headers = ResponseHeaders::new();
@@ -98,7 +108,7 @@ fn response(request: Request, stream: TcpStream) {
     }
     writeln!(stream).unwrap();
 
-    stream.write(&bs).unwrap();
+    stream.write(&data).unwrap();
 }
 
 fn main() {
