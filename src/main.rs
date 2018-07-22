@@ -90,12 +90,21 @@ fn response(request: Request, stream: TcpStream) {
         None => data
     };
 
+    let headers = create_response_headers(status, public_path, &data);
+
+    write_response(stream, headers, data);
+}
+
+fn create_response_headers(status: StatusCode, public_path: String, data: &Vec<u8>) -> ResponseHeaders {
     let mut headers = ResponseHeaders::new();
     write_http_status_line(&mut headers, status);
     write_content_type(&public_path, &mut headers);
     write_content_length(&mut headers, data.len());
     write_content_encoding(&mut headers);
+    headers
+}
 
+fn write_response(stream: TcpStream, headers: ResponseHeaders, data: Vec<u8>) {
     let mut stream = BufWriter::new(stream);
 
     for header in headers {
