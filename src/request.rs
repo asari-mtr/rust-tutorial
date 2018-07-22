@@ -13,7 +13,7 @@ pub struct Request {
 type RequestHeaders = HashMap<String, String>;
 
 impl Request {
-    pub fn init(stream: &TcpStream) -> Request {
+    pub fn new(stream: &TcpStream) -> Request {
         let mut stream = BufReader::new(stream);
         let mut request_line = String::new();
         match stream.read_line(&mut request_line) {

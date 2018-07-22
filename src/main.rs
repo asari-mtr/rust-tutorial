@@ -31,7 +31,7 @@ fn public_path(path: &str) -> String {
 }
 
 fn handle_client(stream: TcpStream, _addr: SocketAddr) {
-    let request = Request::init(&stream);
+    let request = Request::new(&stream);
 
     request.debug_request();
     dispatch(request, stream);
@@ -71,15 +71,10 @@ fn response(request: Request, stream: TcpStream) {
 
     println!("{}", public_path);
 
-    // let mut body = String::new();
-    // file.read_to_string(&mut body)
-    //     .expect("something went wrong reading the file");
-
     let data = fs::read(&public_path).expect("Unable to read file");
-
     let data = match request.headers.get("Accept-Encoding") {
         Some(keys) => {
-            // a weak point
+            // It needs to use a more accurate match method.
             if keys.contains("gzip") {
                 let mut e = GzEncoder::new(Vec::new(), Compression::default());
 
