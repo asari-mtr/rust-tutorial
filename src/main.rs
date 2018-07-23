@@ -13,10 +13,11 @@ extern crate mime_guess;
 mod request;
 use request::Request;
 
+mod response;
+use response::*;
+
 mod status_code;
 use status_code::StatusCode;
-
-type ResponseHeaders = Vec<String>;
 
 fn public_path(path: &str) -> String {
     let mut base = String::from("public");
@@ -41,23 +42,6 @@ fn dispatch(request: Request, stream: TcpStream) {
     if request.method == "GET" {
         response(request, stream);
     }
-}
-
-fn write_http_status_line(headers: &mut ResponseHeaders, status: StatusCode) {
-    headers.push(format!("HTTP/1.1 {} {}", status.to_u16(), status.status_comment().unwrap()));
-}
-
-fn write_content_type(public_path: &str, headers: &mut ResponseHeaders) {
-    let mime = mime_guess::guess_mime_type(public_path).to_string();
-    headers.push(format!("Content-Type: {}; charset=UTF-8", mime));
-}
-
-fn write_content_length(headers: &mut ResponseHeaders, size: usize) {
-    headers.push(format!("Content-Length: {}", size));
-}
-
-fn write_content_encoding(headers: &mut ResponseHeaders) {
-    headers.push("Content-encoding: gzip".to_string());
 }
 
 fn response(request: Request, stream: TcpStream) {
@@ -97,10 +81,10 @@ fn response(request: Request, stream: TcpStream) {
 
 fn create_response_headers(status: StatusCode, public_path: String, data: &Vec<u8>) -> ResponseHeaders {
     let mut headers = ResponseHeaders::new();
-    write_http_status_line(&mut headers, status);
-    write_content_type(&public_path, &mut headers);
-    write_content_length(&mut headers, data.len());
-    write_content_encoding(&mut headers);
+    headers.write_http_status_line(status);
+    headers.write_content_type(&public_path);
+    headers.write_content_length(data.len());
+    headers.write_content_encoding();
     headers
 }
 
