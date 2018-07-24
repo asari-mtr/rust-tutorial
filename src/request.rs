@@ -16,9 +16,8 @@ impl Request {
     pub fn new(stream: &TcpStream) -> Request {
         let mut stream = BufReader::new(stream);
         let mut request_line = String::new();
-        match stream.read_line(&mut request_line) {
-            Ok(_) => (),
-            Err(err) => panic!("error during receive a line: {}", err),
+        if let Err(err) = stream.read_line(&mut request_line) {
+            panic!("error during receive a line: {}", err)
         };
 
         let mut iter = request_line.split_whitespace();
