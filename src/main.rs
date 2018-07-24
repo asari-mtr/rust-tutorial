@@ -49,6 +49,14 @@ fn response(request: Request, stream: TcpStream) {
 
     println!("{}", public_path);
 
+    let data = read_data(request, &public_path);
+
+    let headers = create_response_headers(status, &public_path, &data);
+
+    write_response(stream, headers, data);
+}
+
+fn read_data(request: Request, public_path: &str) -> Vec<u8> {
     let data = fs::read(&public_path).expect("Unable to read file");
     let data = match request.headers.get("Accept-Encoding") {
         Some(keys) => {
@@ -67,13 +75,10 @@ fn response(request: Request, stream: TcpStream) {
         },
         None => data
     };
-
-    let headers = create_response_headers(status, public_path, &data);
-
-    write_response(stream, headers, data);
+    data
 }
 
-fn create_response_headers(status: StatusCode, public_path: String, data: &Vec<u8>) -> ResponseHeaders {
+fn create_response_headers(status: StatusCode, public_path: &str, data: &Vec<u8>) -> ResponseHeaders {
     let mut headers = ResponseHeaders::new();
     headers.write_http_status_line(status);
     headers.write_content_type(&public_path);
