@@ -8,8 +8,6 @@ extern crate flate2;
 use flate2::Compression;
 use flate2::write::GzEncoder;
 
-extern crate mime_guess;
-
 mod request;
 use request::Request;
 
@@ -31,14 +29,10 @@ fn public_path(path: &str) -> String {
     base
 }
 
-fn handle_client(stream: TcpStream, _addr: SocketAddr) {
+fn dispatch(stream: TcpStream, _addr: SocketAddr) {
     let request = Request::new(&stream);
-
     request.debug_request();
-    dispatch(request, stream);
-}
 
-fn dispatch(request: Request, stream: TcpStream) {
     if request.method == "GET" {
         response(request, stream);
     }
@@ -106,7 +100,7 @@ fn main() {
         match listener.accept() {
             Ok((stream, addr)) => {
                 thread::spawn(move || {
-                    handle_client(stream, addr)
+                    dispatch(stream, addr)
                 });
             }
             Err(_) => println!("Connection fail!")
