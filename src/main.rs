@@ -41,19 +41,21 @@ fn dispatch(stream: TcpStream, _addr: SocketAddr) {
 fn response(request: Request, stream: TcpStream) {
     let public_path = public_path(&request.uri);
 
-    let (public_path, status) = if Path::new(&public_path).exists() {
-        (public_path, StatusCode::Ok)
-    } else {
-        ("public/404.html".to_string(), StatusCode::NotFound)
-    };
-
-    println!("{}", public_path);
+    let (public_path, status) = valid_file_path(&public_path);
 
     let data = read_data(request, &public_path);
 
     let headers = create_response_headers(status, &public_path, &data);
 
     write_response(stream, headers, data);
+}
+
+fn valid_file_path(public_path: &str) -> (String, StatusCode) {
+    if Path::new(&public_path).exists() {
+        (public_path.to_string(), StatusCode::Ok)
+    } else {
+        ("public/404.html".to_string(), StatusCode::NotFound)
+    }
 }
 
 fn read_data(request: Request, public_path: &str) -> Vec<u8> {
