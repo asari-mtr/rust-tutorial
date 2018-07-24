@@ -60,7 +60,7 @@ fn valid_file_path(public_path: &str) -> (String, StatusCode) {
 
 fn read_data(request: Request, public_path: &str) -> Vec<u8> {
     let data = fs::read(&public_path).expect("Unable to read file");
-    let data = match request.headers.get("Accept-Encoding") {
+    match request.headers.get("Accept-Encoding") {
         Some(keys) => {
             // It needs to use a more accurate match method.
             if keys.contains("gzip") {
@@ -76,8 +76,7 @@ fn read_data(request: Request, public_path: &str) -> Vec<u8> {
             }
         },
         None => data
-    };
-    data
+    }
 }
 
 fn create_response_headers(status: StatusCode, public_path: &str, data: &Vec<u8>) -> ResponseHeaders {
