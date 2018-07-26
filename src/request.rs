@@ -3,6 +3,7 @@ use std::net::{TcpStream};
 
 use std::collections::HashMap;
 
+#[derive(Debug)]
 pub struct Request {
     pub method: String,
     pub uri: String,
@@ -47,16 +48,6 @@ impl Request {
             }
         }
 
-        for (key, val) in headers.iter() {
-            println!("key: {}, val: {}", key, val);
-        }
-
         headers
-    }
-
-    pub fn debug_request(&self) {
-        println!("method: {}", self.method);
-        println!("uri: {}", self.uri);
-        println!("version: {}", self.version);
     }
 }

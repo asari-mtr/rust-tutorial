@@ -31,7 +31,7 @@ fn public_path(path: &str) -> String {
 
 fn dispatch(stream: TcpStream, _addr: SocketAddr) {
     let request = Request::new(&stream);
-    request.debug_request();
+    println!("{:?}", request);
 
     if request.method == "GET" {
         response(request, stream);
