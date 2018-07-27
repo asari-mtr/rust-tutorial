@@ -17,8 +17,11 @@ use response::*;
 mod status_code;
 use status_code::StatusCode;
 
+mod constants;
+use constants::*;
+
 fn public_path(path: &str) -> String {
-    let mut base = String::from("public");
+    let mut base = String::from(ROOT_DIR);
 
     if path == "/" {
         base.push_str("/index.html")
@@ -33,7 +36,7 @@ fn dispatch(stream: TcpStream, _addr: SocketAddr) {
     let request = Request::new(&stream);
     println!("{:?}", request);
 
-    if request.method == "GET" {
+    if request.method == GET {
         response(request, stream);
     }
 }
@@ -60,10 +63,10 @@ fn valid_file_path(public_path: &str) -> (String, StatusCode) {
 
 fn read_data(request: Request, public_path: &str) -> Vec<u8> {
     let data = fs::read(&public_path).expect("Unable to read file");
-    match request.headers.get("Accept-Encoding") {
+    match request.headers.get(ACCEPT_ENCODING) {
         Some(keys) => {
             // It needs to use a more accurate match method.
-            if keys.contains("gzip") {
+            if keys.contains(GZIP) {
                 let mut e = GzEncoder::new(Vec::new(), Compression::default());
 
                 e.write(&data).unwrap();
