@@ -3,9 +3,11 @@ use std::net::{TcpStream};
 
 use std::collections::HashMap;
 
+use http_method::*;
+
 #[derive(Debug)]
 pub struct Request {
-    pub method: String,
+    pub method: HttpMethod,
     pub uri: String,
     pub version: String,
     pub headers: RequestHeaders
@@ -23,7 +25,7 @@ impl Request {
 
         let mut iter = request_line.split_whitespace();
         Request {
-            method: iter.next().unwrap().to_string(),
+            method: HttpMethod::from_str(iter.next().unwrap()).unwrap(),
             uri: iter.next().unwrap().to_string(),
             version: iter.next().unwrap().to_string(),
             headers: Request::create_header(&mut stream)

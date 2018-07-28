@@ -4,6 +4,7 @@ mod constants;
 mod request;
 mod response;
 mod status_code;
+mod http_method;
 
 use constants::*;
 use request::Request;
@@ -15,7 +16,7 @@ fn dispatch(stream: TcpStream, _addr: SocketAddr) {
     let request = Request::new(&stream);
     println!("{:?}", request);
 
-    if request.method == GET {
+    if request.method.is_get() {
         response(request, stream);
     }
 }
