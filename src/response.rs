@@ -58,11 +58,13 @@ fn public_path(path: &str) -> String {
     }
 }
 
-fn valid_file_path(public_path: &str) -> (String, StatusCode) {
-    if Path::new(&public_path).exists() {
-        (public_path.to_string(), StatusCode::Ok)
+fn valid_file_path(path_str: &str) -> (String, StatusCode) {
+    let path = Path::new(&path_str);
+
+    if path.exists() && path.is_file() {
+        (path_str.to_string(), StatusCode::Ok)
     } else {
-        ("public/404.html".to_string(), StatusCode::NotFound)
+        (public_path(&"/404.html".to_string()).to_string(), StatusCode::NotFound)
     }
 }
 
