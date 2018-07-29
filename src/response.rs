@@ -51,15 +51,11 @@ pub fn response(request: Request, stream: TcpStream) {
 }
 
 fn public_path(path: &str) -> String {
-    let mut base = String::from(ROOT_DIR);
-
-    if path == "/" {
-        base.push_str("/index.html")
+    if path.ends_with("/") {
+        vec![ROOT_DIR, path, "index.html"].concat()
     } else {
-        base.push_str(path)
+        vec![ROOT_DIR, path].concat()
     }
-
-    base
 }
 
 fn valid_file_path(public_path: &str) -> (String, StatusCode) {
