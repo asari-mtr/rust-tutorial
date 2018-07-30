@@ -94,9 +94,10 @@ fn create_response_headers(request: &Request, status: StatusCode, public_path: &
     headers.write_http_status_line(status);
     headers.write_content_type(&public_path);
     headers.write_content_length(data.len());
-    match request.headers.get(ACCEPT_ENCODING) {
-        Some(keys) if keys.contains(GZIP) => headers.write_content_encoding(),
-        _ => ()
+    if let Some(keys) = request.headers.get(ACCEPT_ENCODING) {
+        if keys.contains(GZIP) {
+            headers.write_content_encoding()
+        }
     }
     headers
 }
