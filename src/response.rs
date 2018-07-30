@@ -34,7 +34,7 @@ impl WriteResponseHeaders for ResponseHeaders {
     }
 
     fn write_content_encoding(&mut self) {
-        self.push("content-encoding: gzip".to_string());
+        self.push(format!("content-encoding: {}", GZIP));
     }
 }
 
@@ -43,9 +43,9 @@ pub fn response(request: Request, stream: TcpStream) {
 
     let (public_path, status) = valid_file_path(&public_path);
 
-    let data = read_data(request, &public_path);
+    let data = read_data(&request, &public_path);
 
-    let headers = create_response_headers(status, &public_path, &data);
+    let headers = create_response_headers(&request, status, &public_path, &data);
 
     write_response(stream, headers, data);
 }
@@ -68,7 +68,7 @@ fn valid_file_path(path_str: &str) -> (String, StatusCode) {
     }
 }
 
-fn read_data(request: Request, public_path: &str) -> Vec<u8> {
+fn read_data(request: &Request, public_path: &str) -> Vec<u8> {
     let data = fs::read(&public_path).expect("Unable to read file");
     match request.headers.get(ACCEPT_ENCODING) {
         Some(keys) => {
@@ -89,12 +89,15 @@ fn read_data(request: Request, public_path: &str) -> Vec<u8> {
     }
 }
 
-fn create_response_headers(status: StatusCode, public_path: &str, data: &Vec<u8>) -> ResponseHeaders {
+fn create_response_headers(request: &Request, status: StatusCode, public_path: &str, data: &Vec<u8>) -> ResponseHeaders {
     let mut headers = ResponseHeaders::new();
     headers.write_http_status_line(status);
     headers.write_content_type(&public_path);
     headers.write_content_length(data.len());
-    headers.write_content_encoding();
+    match request.headers.get(ACCEPT_ENCODING) {
+        Some(keys) if keys.contains(GZIP) => headers.write_content_encoding(),
+        _ => ()
+    }
     headers
 }
 
