@@ -39,7 +39,7 @@ impl WriteResponseHeaders for ResponseHeaders {
 }
 
 #[cfg(test)]
-mod tests22 {
+mod write_response_headers_test {
     use super::*;
 
     #[test]
