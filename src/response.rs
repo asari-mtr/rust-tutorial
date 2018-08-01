@@ -51,12 +51,43 @@ pub fn response(request: Request, stream: TcpStream) {
 }
 
 fn public_path(path: &str) -> String {
-    if path.ends_with("/") {
-        vec![ROOT_DIR, path, "index.html"].concat()
+    let sep = if path.starts_with("/") {
+        ""
     } else {
-        vec![ROOT_DIR, path].concat()
+        "/"
+    };
+    if path.ends_with("/") {
+        vec![ROOT_DIR, sep, path, "index.html"].concat()
+    } else {
+        vec![ROOT_DIR, sep, path].concat()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn file_path_with_slash() {
+        assert_eq!("public/toc.html", public_path("/toc.html"));
+    }
+
+    #[test]
+    fn file_path_without_slash() {
+        assert_eq!("public/toc.html", public_path("toc.html"));
+    }
+
+    #[test]
+    fn dir_path_with_slash() {
+        assert_eq!("public/image/index.html", public_path("/image/"));
+    }
+
+    #[test]
+    fn dir_path_without_slash() {
+        assert_eq!("public/image/index.html", public_path("image/"));
+    }
+}
+
 
 fn valid_file_path(path_str: &str) -> (String, StatusCode) {
     let path = Path::new(&path_str);
