@@ -35,6 +35,41 @@ impl WriteResponseHeaders for ResponseHeaders {
     fn write_content_encoding(&mut self) {
         self.push(format!("content-encoding: {}", GZIP));
     }
+
+}
+
+#[cfg(test)]
+mod tests22 {
+    use super::*;
+
+    #[test]
+    fn write_content_type_with_html() {
+        let mut headers = ResponseHeaders::new();
+        headers.write_content_type("hoge.html");
+        assert_eq!("content-type: text/html; charset=utf-8", headers[0]);
+    }
+
+    #[test]
+    #[ignore]
+    fn write_content_type_with_png() {
+        let mut headers = ResponseHeaders::new();
+        headers.write_content_type("hoge.png");
+        assert_eq!("content-type: image/png", headers[0]);
+    }
+
+    #[test]
+    fn write_content_length() {
+        let mut headers = ResponseHeaders::new();
+        headers.write_content_length(12);
+        assert_eq!("content-length: 12", headers[0]);
+    }
+
+    #[test]
+    fn write_content_encoding() {
+        let mut headers = ResponseHeaders::new();
+        headers.write_content_encoding();
+        assert_eq!("content-encoding: gzip", headers[0]);
+    }
 }
 
 pub fn response<W: Write>(request: Request, stream: W) {
