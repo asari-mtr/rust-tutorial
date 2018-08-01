@@ -7,7 +7,6 @@ use request::Request;
 use status_code::StatusCode;
 use std::fs;
 use std::io::{Write, BufWriter};
-use std::net::{TcpStream};
 use std::path::Path;
 
 pub type ResponseHeaders = Vec<String>;
@@ -38,7 +37,7 @@ impl WriteResponseHeaders for ResponseHeaders {
     }
 }
 
-pub fn response(request: Request, stream: TcpStream) {
+pub fn response<W: Write>(request: Request, stream: W) {
     let public_path = public_path(&request.uri);
 
     let (public_path, status) = valid_file_path(&public_path);
@@ -133,7 +132,7 @@ fn create_response_headers(request: &Request, status: StatusCode, public_path: &
     headers
 }
 
-fn write_response(stream: TcpStream, headers: ResponseHeaders, data: Vec<u8>) {
+fn write_response<W: Write>(stream: W, headers: ResponseHeaders, data: Vec<u8>) {
     let mut stream = BufWriter::new(stream);
 
     for header in headers {
