@@ -43,6 +43,13 @@ mod write_response_headers_test {
     use super::*;
 
     #[test]
+    fn write_http_status_line() {
+        let mut headers = ResponseHeaders::new();
+        headers.write_http_status_line(StatusCode::Ok);
+        assert_eq!("http/1.1 200 OK", headers[0]);
+    }
+
+    #[test]
     fn write_content_type_with_html() {
         let mut headers = ResponseHeaders::new();
         headers.write_content_type("hoge.html");
@@ -130,6 +137,25 @@ fn valid_file_path(path_str: &str) -> (String, StatusCode) {
         (path_str.to_string(), StatusCode::Ok)
     } else {
         (public_path(&"/404.html".to_string()).to_string(), StatusCode::NotFound)
+    }
+}
+
+#[cfg(test)]
+mod valid_file_path_test {
+    use super::*;
+
+    #[test]
+    fn valid_file_path_return_ok() {
+        let (path, status) = valid_file_path("public/index.html");
+        assert_eq!("public/index.html", path);
+        assert_eq!(StatusCode::Ok, status);
+    }
+
+    #[test]
+    fn valid_file_path_return_not_found() {
+        let (path, status) = valid_file_path("public/hoge.html");
+        assert_eq!("public/404.html", path);
+        assert_eq!(StatusCode::NotFound, status);
     }
 }
 

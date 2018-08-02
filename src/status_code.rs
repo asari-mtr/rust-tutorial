@@ -1,3 +1,5 @@
+#[derive(Debug)]
+#[derive(PartialEq)]
 pub enum StatusCode {
     // 200 Ok
     Ok,
@@ -32,4 +34,3 @@ impl StatusCode {
         }
     }
 }
-
