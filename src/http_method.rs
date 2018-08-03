@@ -44,7 +44,7 @@ impl HttpMethod {
     pub fn is_get(&self) -> bool {
     	self.to_str() == "GET"
     }
-    
+
     pub fn is_head(&self) -> bool {
     	self.to_str() == "HEAD"
     }

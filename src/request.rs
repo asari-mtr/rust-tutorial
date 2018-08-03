@@ -1,5 +1,4 @@
-use std::io::{BufRead, BufReader};
-use std::net::{TcpStream};
+use std::io::{Read, BufRead, BufReader};
 
 use std::collections::HashMap;
 
@@ -16,7 +15,7 @@ pub struct Request {
 type RequestHeaders = HashMap<String, String>;
 
 impl Request {
-    pub fn new(stream: &TcpStream) -> Request {
+    pub fn new<R: Read>(stream: R) -> Request {
         let mut stream = BufReader::new(stream);
         let mut request_line = String::new();
         if let Err(err) = stream.read_line(&mut request_line) {
@@ -32,7 +31,7 @@ impl Request {
         }
     }
 
-    fn create_header(stream: &mut BufReader<&TcpStream>) -> RequestHeaders {
+    fn create_header<R: Read>(stream: &mut BufReader<R>) -> RequestHeaders {
         let mut headers = RequestHeaders::new();
 
         loop {
