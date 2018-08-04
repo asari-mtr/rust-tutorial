@@ -1,4 +1,4 @@
-use std::io::{Read, BufRead, BufReader};
+use std::io::{Error, Read, BufRead, BufReader};
 
 use std::collections::HashMap;
 
@@ -50,5 +50,35 @@ impl Request {
         }
 
         headers
+    }
+}
+
+#[cfg(test)]
+mod RequestTest {
+    use std::io::Read;
+    use super::*;
+
+    struct ReadMock<'a> {
+        data: &'a [u8]
+    }
+
+    impl <'a> ReadMock<'a> {
+        fn new() -> ReadMock<'a> {
+            ReadMock {
+                data: &b"GET / 1.1"
+            }
+        }
+    }
+
+    impl <'a> Read for ReadMock<'a> {
+        fn read(&mut self, buf: &mut 'a [u8]) -> Result<usize, Error> {
+            buf = self.data.next().unwrap();
+            Ok(1)
+        }
+    }
+
+    #[test]
+    fn new() {
+        let request = Request::new(ReadMock::new());
     }
 }
