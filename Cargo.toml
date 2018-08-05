@@ -7,3 +7,4 @@ authors = ["Asari Mitsuteru <asari.mtr@gmail.com>"]
 time = "0.1"
 flate2 = "1.0.1"
 mime_guess = "1.8.6"
+stringreader = "0.1.1"

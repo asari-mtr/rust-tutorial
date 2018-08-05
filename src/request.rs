@@ -1,4 +1,4 @@
-use std::io::{Read, BufRead, BufReader};
+use std::io::{Error, Read, BufRead, BufReader};
 
 use std::collections::HashMap;
 
@@ -50,5 +50,21 @@ impl Request {
         }
 
         headers
+    }
+}
+
+#[cfg(test)]
+mod request_test{
+    extern crate stringreader;
+    use super::*;
+    use self::stringreader::StringReader;
+
+    #[test]
+    fn new_test() {
+        let request = Request::new(StringReader::new("GET / HTTP/1.1\n"));
+
+        assert_eq!(HttpMethod::GET, request.method);
+        assert_eq!("/", request.uri);
+        assert_eq!("HTTP/1.1", request.version);
     }
 }
