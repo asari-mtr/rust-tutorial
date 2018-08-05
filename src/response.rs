@@ -136,7 +136,7 @@ fn valid_file_path(path_str: &str) -> (String, StatusCode) {
     if path.exists() && path.is_file() {
         (path_str.to_string(), StatusCode::Ok)
     } else {
-        (public_path(&"/404.html".to_string()).to_string(), StatusCode::NotFound)
+        (public_path("/404.html"), StatusCode::NotFound)
     }
 }
 
