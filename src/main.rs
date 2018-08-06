@@ -13,7 +13,7 @@ use std::net::{TcpListener, TcpStream, SocketAddr};
 use std::thread;
 
 fn dispatch(stream: TcpStream, _addr: SocketAddr) {
-    let request = Request::new(&stream);
+    let request = Request::new(&stream).ok().unwrap();
     println!("{:?}", request);
 
     if request.method.is_get() {

@@ -15,20 +15,20 @@ pub struct Request {
 type RequestHeaders = HashMap<String, String>;
 
 impl Request {
-    pub fn new<R: Read>(stream: R) -> Request {
+    pub fn new<R: Read>(stream: R) -> Result<Request, Error> {
         let mut stream = BufReader::new(stream);
         let mut request_line = String::new();
         if let Err(err) = stream.read_line(&mut request_line) {
-            panic!("error during receive a line: {}", err)
+            return Err(err)
         };
 
         let mut iter = request_line.split_whitespace();
-        Request {
+        Ok(Request {
             method: HttpMethod::from_str(iter.next().unwrap()).unwrap(),
             uri: iter.next().unwrap().to_string(),
             version: iter.next().unwrap().to_string(),
             headers: Request::create_header(&mut stream)
-        }
+        })
     }
 
     fn create_header<R: Read>(stream: &mut BufReader<R>) -> RequestHeaders {
@@ -61,10 +61,12 @@ mod request_test{
 
     #[test]
     fn new_test() {
-        let request = Request::new(StringReader::new("GET / HTTP/1.1\n"));
+        let request = Request::new(StringReader::new("GET / HTTP/1.1\n")).unwrap();
 
         assert_eq!(HttpMethod::GET, request.method);
         assert_eq!("/", request.uri);
         assert_eq!("HTTP/1.1", request.version);
     }
+
+    // invalid request line
 }
