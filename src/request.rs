@@ -15,20 +15,25 @@ pub struct Request {
 type RequestHeaders = HashMap<String, String>;
 
 impl Request {
-    pub fn new<R: Read>(stream: R) -> Result<Request, Error> {
+    pub fn new<R: Read>(stream: R) -> Result<Request, String> {
         let mut stream = BufReader::new(stream);
         let mut request_line = String::new();
         if let Err(err) = stream.read_line(&mut request_line) {
-            return Err(err)
+            return Err(err.to_string())
         };
 
         let mut iter = request_line.split_whitespace();
-        Ok(Request {
-            method: HttpMethod::from_str(iter.next().unwrap()).unwrap(),
-            uri: iter.next().unwrap().to_string(),
-            version: iter.next().unwrap().to_string(),
-            headers: Request::create_header(&mut stream)
-        })
+        let n: Vec<&str>  = iter.collect();
+        if n.len() == 3 {
+            Ok(Request {
+                method: HttpMethod::from_str(n[0]).unwrap(),
+                uri: n[1].to_string(),
+                version: n[2].to_string(),
+                headers: Request::create_header(&mut stream)
+            })
+        } else {
+            Err("Invalid request line".to_string())
+        }
     }
 
     fn create_header<R: Read>(stream: &mut BufReader<R>) -> RequestHeaders {
@@ -68,5 +73,10 @@ mod request_test{
         assert_eq!("HTTP/1.1", request.version);
     }
 
-    // invalid request line
+    #[test]
+    fn new_test_when_invalid() {
+        if let Err(err) = Request::new(StringReader::new("GET /\n")) {
+            assert_eq!("Invalid request line", err);
+        }
+    }
 }
