@@ -24,9 +24,13 @@ impl Request {
 
         let mut iter = request_line.split_whitespace();
         let n: Vec<&str>  = iter.collect();
+        let method = match HttpMethod::from_str(n[0]) {
+            Some(method) => method,
+            None => return Err(String::from("Invalid method"))
+        };
         if n.len() == 3 {
             Ok(Request {
-                method: HttpMethod::from_str(n[0]).unwrap(),
+                method: method,
                 uri: String::from(n[1]),
                 version: String::from(n[2]),
                 headers: Request::create_header(&mut stream)
@@ -77,6 +81,13 @@ mod request_test{
     fn new_test_when_invalid() {
         if let Err(err) = Request::new(StringReader::new("GET /\n")) {
             assert_eq!("Invalid request line", err);
+        }
+    }
+
+    #[test]
+    fn new_test_when_invalid_method() {
+        if let Err(err) = Request::new(StringReader::new("TAKE / HTTP/1.1\n")) {
+            assert_eq!("Invalid method", err);
         }
     }
 }
