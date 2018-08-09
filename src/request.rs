@@ -27,12 +27,12 @@ impl Request {
         if n.len() == 3 {
             Ok(Request {
                 method: HttpMethod::from_str(n[0]).unwrap(),
-                uri: n[1].to_string(),
-                version: n[2].to_string(),
+                uri: String::from(n[1]),
+                version: String::from(n[2]),
                 headers: Request::create_header(&mut stream)
             })
         } else {
-            Err("Invalid request line".to_string())
+            Err(String::from("Invalid request line"))
         }
     }
 
