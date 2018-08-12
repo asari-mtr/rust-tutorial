@@ -1,12 +1,11 @@
-#[derive(Debug)]
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum StatusCode {
     // 200 Ok
     Ok,
     // 404 Not Found
     NotFound,
     // Unregistered
-    Unregistered(u16)
+    Unregistered(u16),
 }
 
 impl StatusCode {
@@ -14,7 +13,7 @@ impl StatusCode {
         match n {
             200 => StatusCode::Ok,
             404 => StatusCode::NotFound,
-            _ => StatusCode::Unregistered(n)
+            _ => StatusCode::Unregistered(n),
         }
     }
 
@@ -22,7 +21,7 @@ impl StatusCode {
         match *self {
             StatusCode::Ok => 200,
             StatusCode::NotFound => 404,
-            StatusCode::Unregistered(n) => n
+            StatusCode::Unregistered(n) => n,
         }
     }
 
@@ -30,7 +29,7 @@ impl StatusCode {
         match *self {
             StatusCode::Ok => Some("OK"),
             StatusCode::NotFound => Some("Not Found"),
-            StatusCode::Unregistered(..) => None
+            StatusCode::Unregistered(..) => None,
         }
     }
 }

@@ -1,5 +1,4 @@
-#[derive(Debug)]
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum HttpMethod {
     GET,
     HEAD,
@@ -43,38 +42,38 @@ impl HttpMethod {
     }
 
     pub fn is_get(&self) -> bool {
-    	self.to_str() == "GET"
+        self.to_str() == "GET"
     }
 
     pub fn is_head(&self) -> bool {
-    	self.to_str() == "HEAD"
+        self.to_str() == "HEAD"
     }
 
     pub fn is_post(&self) -> bool {
-    	self.to_str() == "POST"
+        self.to_str() == "POST"
     }
 
     pub fn is_put(&self) -> bool {
-    	self.to_str() == "PUT"
+        self.to_str() == "PUT"
     }
 
     pub fn is_delete(&self) -> bool {
-    	self.to_str() == "DELETE"
+        self.to_str() == "DELETE"
     }
 
     pub fn is_connect(&self) -> bool {
-    	self.to_str() == "CONNECT"
+        self.to_str() == "CONNECT"
     }
 
     pub fn is_options(&self) -> bool {
-    	self.to_str() == "OPTIONS"
+        self.to_str() == "OPTIONS"
     }
 
     pub fn is_trace(&self) -> bool {
-    	self.to_str() == "TRACE"
+        self.to_str() == "TRACE"
     }
 
     pub fn is_patch(&self) -> bool {
-    	self.to_str() == "PATCH"
+        self.to_str() == "PATCH"
     }
 }

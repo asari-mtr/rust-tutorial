@@ -1,12 +1,12 @@
 extern crate mime_guess;
 
 use constants::*;
-use flate2::Compression;
 use flate2::write::GzEncoder;
+use flate2::Compression;
 use request::Request;
 use status_code::StatusCode;
 use std::fs;
-use std::io::{Write, BufWriter};
+use std::io::{BufWriter, Write};
 use std::path::Path;
 
 pub type ResponseHeaders = Vec<String>;
@@ -20,7 +20,11 @@ pub trait WriteResponseHeaders {
 
 impl WriteResponseHeaders for ResponseHeaders {
     fn write_http_status_line(&mut self, status: StatusCode) {
-        self.push(format!("http/1.1 {} {}", status.to_u16(), status.status_comment().unwrap()));
+        self.push(format!(
+            "http/1.1 {} {}",
+            status.to_u16(),
+            status.status_comment().unwrap()
+        ));
     }
 
     fn write_content_type(&mut self, public_path: &str) {
@@ -35,7 +39,6 @@ impl WriteResponseHeaders for ResponseHeaders {
     fn write_content_encoding(&mut self) {
         self.push(format!("content-encoding: {}", GZIP));
     }
-
 }
 
 #[cfg(test)]
@@ -92,11 +95,7 @@ pub fn response<W: Write>(request: Request, stream: W) {
 }
 
 fn public_path(path: &str) -> String {
-    let sep = if path.starts_with("/") {
-        ""
-    } else {
-        "/"
-    };
+    let sep = if path.starts_with("/") { "" } else { "/" };
     if path.ends_with("/") {
         vec![ROOT_DIR, sep, path, "index.html"].concat()
     } else {
@@ -128,7 +127,6 @@ mod tests {
         assert_eq!("public/image/index.html", public_path("image/"));
     }
 }
-
 
 fn valid_file_path(path_str: &str) -> (String, StatusCode) {
     let path = Path::new(&path_str);
@@ -170,17 +168,22 @@ fn read_data(request: &Request, public_path: &str) -> Vec<u8> {
                 e.write(&data).unwrap();
                 match e.finish() {
                     Ok(v) => v,
-                    Err(e) => panic!("fail encode to zip: {}", e)
+                    Err(e) => panic!("fail encode to zip: {}", e),
                 }
             } else {
                 data
             }
-        },
-        None => data
+        }
+        None => data,
     }
 }
 
-fn create_response_headers(request: &Request, status: StatusCode, public_path: &str, data: &Vec<u8>) -> ResponseHeaders {
+fn create_response_headers(
+    request: &Request,
+    status: StatusCode,
+    public_path: &str,
+    data: &Vec<u8>,
+) -> ResponseHeaders {
     let mut headers = ResponseHeaders::new();
     headers.write_http_status_line(status);
     headers.write_content_type(&public_path);

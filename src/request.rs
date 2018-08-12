@@ -1,4 +1,4 @@
-use std::io::{Error, Read, BufRead, BufReader};
+use std::io::{BufRead, BufReader, Error, Read};
 
 use std::collections::HashMap;
 
@@ -9,7 +9,7 @@ pub struct Request {
     pub method: HttpMethod,
     pub uri: String,
     pub version: String,
-    pub headers: RequestHeaders
+    pub headers: RequestHeaders,
 }
 
 type RequestHeaders = HashMap<String, String>;
@@ -19,21 +19,21 @@ impl Request {
         let mut stream = BufReader::new(stream);
         let mut request_line = String::new();
         if let Err(err) = stream.read_line(&mut request_line) {
-            return Err(err.to_string())
+            return Err(err.to_string());
         };
 
         let mut iter = request_line.split_whitespace();
-        let n: Vec<&str>  = iter.collect();
+        let n: Vec<&str> = iter.collect();
         let method = match HttpMethod::from_str(n[0]) {
             Some(method) => method,
-            None => return Err(String::from("Invalid method"))
+            None => return Err(String::from("Invalid method")),
         };
         if n.len() == 3 {
             Ok(Request {
                 method: method,
                 uri: String::from(n[1]),
                 version: String::from(n[2]),
-                headers: Request::create_header(&mut stream)
+                headers: Request::create_header(&mut stream),
             })
         } else {
             Err(String::from("Invalid request line"))
@@ -51,9 +51,10 @@ impl Request {
                     let mut contents = request_line.split(":");
                     headers.insert(
                         contents.next().unwrap().trim().to_string(),
-                        contents.next().unwrap().trim().to_string());
-                },
-                Ok(_) =>  break,
+                        contents.next().unwrap().trim().to_string(),
+                    );
+                }
+                Ok(_) => break,
                 Err(err) => panic!("error during receive a line: {}", err),
             }
         }
@@ -63,10 +64,10 @@ impl Request {
 }
 
 #[cfg(test)]
-mod request_test{
+mod request_test {
     extern crate stringreader;
-    use super::*;
     use self::stringreader::StringReader;
+    use super::*;
 
     #[test]
     fn new_test() {

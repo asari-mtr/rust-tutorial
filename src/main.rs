@@ -1,15 +1,15 @@
 extern crate flate2;
 
 mod constants;
+mod http_method;
 mod request;
 mod response;
 mod status_code;
-mod http_method;
 
 use constants::*;
 use request::Request;
 use response::*;
-use std::net::{TcpListener, TcpStream, SocketAddr};
+use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::thread;
 
 fn dispatch(stream: TcpStream, _addr: SocketAddr) {
@@ -27,11 +27,9 @@ fn main() {
     loop {
         match listener.accept() {
             Ok((stream, addr)) => {
-                thread::spawn(move || {
-                    dispatch(stream, addr)
-                });
+                thread::spawn(move || dispatch(stream, addr));
             }
-            Err(_) => println!("Connection fail!")
+            Err(_) => println!("Connection fail!"),
         }
     }
 }
