@@ -6,6 +6,7 @@ use flate2::Compression;
 use request::Request;
 use status_code::StatusCode;
 use std::fs;
+use std::io::Error;
 use std::io::{BufWriter, Write};
 use std::path::Path;
 
@@ -82,16 +83,18 @@ mod write_response_headers_test {
     }
 }
 
-pub fn response<W: Write>(request: Request, stream: W) {
+pub fn response<W: Write>(request: Request, stream: W) -> Result<(), Error> {
     let public_path = public_path(&request.uri);
 
     let (public_path, status) = valid_file_path(&public_path);
 
-    let data = read_data(&request, &public_path);
+    let data = read_data(&request, &public_path)?;
 
     let headers = create_response_headers(&request, status, &public_path, &data);
 
     write_response(stream, headers, data);
+
+    Ok(())
 }
 
 fn public_path(path: &str) -> String {
@@ -157,24 +160,21 @@ mod valid_file_path_test {
     }
 }
 
-fn read_data(request: &Request, public_path: &str) -> Vec<u8> {
-    let data = fs::read(&public_path).expect("Unable to read file");
+fn read_data(request: &Request, public_path: &str) -> Result<Vec<u8>, Error> {
+    let data = fs::read(&public_path)?;
     match request.headers.get(ACCEPT_ENCODING) {
-        Some(keys) => {
+        Some(keys) if keys.contains(GZIP) => {
             // It needs to use a more accurate match method.
             if keys.contains(GZIP) {
                 let mut e = GzEncoder::new(Vec::new(), Compression::default());
 
                 e.write(&data).unwrap();
-                match e.finish() {
-                    Ok(v) => v,
-                    Err(e) => panic!("fail encode to zip: {}", e),
-                }
+                e.finish()
             } else {
-                data
+                Ok(data)
             }
         }
-        None => data,
+        _ => Ok(data),
     }
 }
 
