@@ -165,14 +165,10 @@ fn read_data(request: &Request, public_path: &str) -> Result<Vec<u8>, Error> {
     match request.headers.get(ACCEPT_ENCODING) {
         Some(keys) if keys.contains(GZIP) => {
             // It needs to use a more accurate match method.
-            if keys.contains(GZIP) {
-                let mut e = GzEncoder::new(Vec::new(), Compression::default());
+            let mut e = GzEncoder::new(Vec::new(), Compression::default());
 
-                e.write(&data).unwrap();
-                e.finish()
-            } else {
-                Ok(data)
-            }
+            e.write(&data).unwrap();
+            e.finish()
         }
         _ => Ok(data),
     }
