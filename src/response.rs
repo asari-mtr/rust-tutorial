@@ -92,7 +92,7 @@ pub fn response<W: Write>(request: Request, stream: W) -> Result<(), Error> {
 
     let headers = create_response_headers(&request, status, &public_path, &data);
 
-    write_response(stream, headers, data);
+    write_response(stream, headers, data)?;
 
     Ok(())
 }
@@ -192,13 +192,19 @@ fn create_response_headers(
     headers
 }
 
-fn write_response<W: Write>(stream: W, headers: ResponseHeaders, data: Vec<u8>) {
+fn write_response<W: Write>(
+    stream: W,
+    headers: ResponseHeaders,
+    data: Vec<u8>,
+) -> Result<(), Error> {
     let mut stream = BufWriter::new(stream);
 
     for header in headers {
-        writeln!(stream, "{}", header).unwrap();
+        writeln!(stream, "{}", header)?;
     }
-    writeln!(stream).unwrap();
+    writeln!(stream)?;
 
-    stream.write(&data).unwrap();
+    stream.write(&data)?;
+
+    Ok(())
 }
